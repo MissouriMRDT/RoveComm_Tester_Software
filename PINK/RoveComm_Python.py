@@ -34,6 +34,7 @@ class RoveCommEthernetUdp:
 		#RC2: add last_data_type, last_data_count
 		
 		self.RoveCommSocket = socket.socket(type = socket.SOCK_DGRAM)
+		self.RoveCommSocket.setblocking(False)
 		self.RoveCommSocket.bind(("", self.rove_comm_port))
 		
 	def write(self, data_id, data_size, data): #RC2: add data_type, data_count
@@ -54,19 +55,21 @@ class RoveCommEthernetUdp:
 		self.RoveCommSocket.sendto(rovecomm_packet, (ip_address, port))
 		
 	def read(self):
-		packet, remote_ip = self.RoveCommSocket.recvfrom(1024)
-		header_size = struct.calcsize(ROVECOMM_HEADER_FORMAT)
+		try:
+			packet, remote_ip = self.RoveCommSocket.recvfrom(1024)
+			
+			header_size = struct.calcsize(ROVECOMM_HEADER_FORMAT)
+			rovecomm_version, seq_num, flags, data_id, data_size = struct.unpack(ROVECOMM_HEADER_FORMAT, packet[0:header_size])
+			data = packet[header_size:]
+			if(data_id == ROVECOMM_SUBSCRIBE_REQUEST):
+				if(self.subscribers.count(remote_ip) == 0):
+					self.subscribers.append(remote_ip)
+			elif(data_id == ROVECOMM_UNSUBSCRIBE_REQUEST):
+				if(self.subscribers.count(remote_ip) != 0):
+					self.subscribers.remove(remote_ip)
+			return (data_id, data_size, data)
 		
-		rovecomm_version, seq_num, flags, data_id, data_size = struct.unpack(ROVECOMM_HEADER_FORMAT, packet[0:header_size])
-		data = packet[header_size:]
-		
-		if(data_id == ROVECOMM_SUBSCRIBE_REQUEST):
-			if(self.subscribers.count(remote_ip) == 0):
-				self.subscribers.append(remote_ip)
-		elif(data_id == ROVECOMM_UNSUBSCRIBE_REQUEST):
-			if(self.subscribers.count(remote_ip) != 0):
-				self.subscribers.remove(remote_ip)
-		
-		return (data_id, data_size, data)
+		except:
+			return(0, 0, 0)
 			
 	#def readFrom ToDo: Change to getLastIp for C++ and Python

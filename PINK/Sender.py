@@ -7,7 +7,7 @@ from RoveComm_Python import *
 
 RoveComm = RoveCommEthernetUdp()
 
-class Example(QWidget):
+class Sender(QWidget):
 	
 	def __init__(self):
 		super().__init__()
@@ -25,16 +25,24 @@ class Example(QWidget):
 		#fileMenu = menubar.addMenu('&File')
 		#fileMenu.addAction(exitAct)
 		
-		send1 = sendWidget(self)
-		send2 = sendWidget(self)
+		self.data_id_text = QLabel('Data ID', self)
+		self.data_id_text.move(50, 0)
 		
-		self.setWindowTitle('RoveComm App')
+		self.data_size_text = QLabel('Data Size', self)
+		self.data_size_text.move(200, 0)
+		
+		self.data_data_text = QLabel('Data', self)
+		self.data_data_text.move(350, 0)
+		
+		self.send1 = sendWidget(self)
+		self.send1.move(0, 10)
+		
+		self.send2 = sendWidget(self)
+		self.send2.move(0, 40)
+		
+		self.setWindowTitle('Sender')
 		self.setWindowIcon(QIcon('Rover.png')) 
-		self.resize(200, 300)
-		
-		self.layout = QHBoxLayout()
-		self.layout.addWidget(send1)
-		self.layout.addWidget(send2)
+		self.resize(600, 120)
 
 		self.show()
 		
@@ -51,41 +59,25 @@ class sendWidget(QWidget):
 	def initUI(self):
 		send = QPushButton('Send', self)
 		send.resize(send.sizeHint())
-		send.move(0,200)  
 		send.clicked.connect(self.sendEvent)
 		
-		recieve = QPushButton('Recieve', self)
-		recieve.resize(send.sizeHint())
-		recieve.move(100,200)  
-		recieve.clicked.connect(self.recieveEvent)
-		
 		self.data_id_le = QLineEdit(self)
-		self.data_id_le.move(0, 50)
-		
 		self.data_size_le = QLineEdit(self)
-		self.data_size_le.move(0, 100)
-		
 		self.data_data_le = QLineEdit(self)
-		self.data_data_le.move(0, 150)
 		
-		self.layout=QVBoxLayout(self)
-		self.layout.addWidget(self.data_id_le)
-		self.layout.addWidget(self.data_size_le)
-		self.layout.addWidget(self.data_data_le)
-		self.layout.addWidget(send)
-		self.layout.addWidget(recieve)
-		#self.show()
+		layout=QHBoxLayout(self)
+		layout.addWidget(self.data_id_le)
+		layout.addWidget(self.data_size_le)
+		layout.addWidget(self.data_data_le)
+		layout.addWidget(send)
+
 		
 	def sendEvent(self):
 		RoveComm.writeTo(int(self.data_id_le.text()), int(self.data_size_le.text()), struct.pack('>L', int(self.data_data_le.text())), '127.0.0.1')
-		print(self.data_id_le.text(), self.data_size_le.text(), self.data_data_le.text())
-		
-	def recieveEvent(self):
-		data_id, data_size, data = RoveComm.read()
-		print(data_id, data_size, struct.unpack('>L', data))		
+		print(self.data_id_le.text(), self.data_size_le.text(), self.data_data_le.text())		
 		
 if __name__ == '__main__':
 	
 	app = QApplication(sys.argv)
-	ex = Example()
+	ex = Sender()
 	sys.exit(app.exec_())
