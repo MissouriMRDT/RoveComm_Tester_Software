@@ -141,8 +141,7 @@ class sendWidget(QWidget):
 			data = (data) + (int(self.data_array[i].text()),)
 			
 		packet = RoveCommPacket(int(self.data_id_le.text()), types_text_to_byte[self.data_type_cb.currentText()], data, self.ip_octet_4_le.text())
-		RoveComm.write(packet)
-				
+		RoveComm.write(packet)			
 	
 	def addEvent(self, parent):
 		self.parent().addEvent(self.number)
@@ -172,6 +171,10 @@ class sendWidget(QWidget):
 					
 		except:
 			return
+	
+	def keyPressEvent(self, e):
+		if e.key() == Qt.Key_Return:
+			self.sendEvent()
 	
 if __name__ == '__main__':
 	
