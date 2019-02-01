@@ -1,3 +1,8 @@
+'''
+
+
+pyinstaller -D --icon=rover_1wP_icon.ico -w Sender.py
+'''
 import sys
 import struct
 from PyQt5.QtCore import *
