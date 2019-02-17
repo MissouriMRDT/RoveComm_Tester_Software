@@ -1,7 +1,7 @@
 import socket
 import struct
 
-ROVECOMM_PORT 			= 1100
+ROVECOMM_PORT 			= 11000
 ROVECOMM_VERSION 		= 2
 ROVECOMM_HEADER_FORMAT 	= ">BHBB"
 
