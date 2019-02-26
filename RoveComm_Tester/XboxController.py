@@ -344,6 +344,7 @@ class XboxController(threading.Thread):
         return value
     
 #tests
+'''
 if __name__ == '__main__':
 
     #generic call back
@@ -382,3 +383,4 @@ if __name__ == '__main__':
     finally:
         #stop the controller
         xboxCont.stop()
+		'''

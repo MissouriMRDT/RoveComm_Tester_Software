@@ -9,6 +9,7 @@ import threading
 import datetime
 import time
 import os
+from XboxController import *
 
 RoveComm = RoveCommEthernetUdp()
 
@@ -25,6 +26,25 @@ try:
 	os.mkdir('0-CSV Outputs')
 except:
 	pass
+	
+def controlCallBack(xboxControlId, value):
+	print("Control Id = {}, Value = {}".format(xboxControlId, value))
+	
+controls = ( "Line Entry"
+			,"Left Thumb X"
+			,"Left Thumb Y"
+			,"Right Thumb X"
+			,"Right Thumb Y"
+			,"D Pad"
+			,"L Trigger"
+			,"R Trigger"
+			,"L Bumper"
+			,"R Bumper"
+			,"A"
+			,"B"
+			,"C"
+			,"D"
+			,"Start")
 
 class Reciever(QWidget):
 	
@@ -232,10 +252,18 @@ class sendWidget(QWidget):
 		self.initUI(parent, number)
 		
 	def initUI(self, parent, number):
+		try:
+			self.xboxCont = XboxController(controlCallBack, deadzone = 30, scale = 100, invertYAxis = True)
+		except:
+			pass
+			
 		self.data_id_text = QLabel('Data ID', self)
 		self.data_type_text = QLabel('Data Type', self)
 		self.data_size_text = QLabel('Data Size', self)
 		self.data_data_text = QLabel('Data', self)
+		self.data_input_text = QLabel('Input', self)
+		self.data_scalar_text = QLabel('Scalar', self)
+		self.data_update_ms_text = QLabel('Update ms', self)
 		self.ip_octet_4_text = QLabel('IP Octet 4', self)
 		
 		self.number_txt = QLabel(str(number) + '.', self)
@@ -268,14 +296,22 @@ class sendWidget(QWidget):
 		self.data_type_cb.addItem("Int32")
 		self.data_type_cb.addItem("uInt32")
 		
-		self.data_array    = [QLineEdit(self)]
+		self.data_array      = [QLineEdit(self)]
+		self.input_cb_array  = [QComboBox(self)]
+		self.scalar_array    = [QLineEdit(self)]
+		self.update_ms_array = [QLineEdit(self)]
+		
+		self.input_cb_array[0] = self.addControls(self.input_cb_array[0])
 		
 		self.main_layout=QGridLayout(self)
 		self.main_layout.addWidget(self.data_id_text, 0, 3)
 		self.main_layout.addWidget(self.data_type_text, 0, 4)
 		self.main_layout.addWidget(self.data_size_text, 0, 5)
 		self.main_layout.addWidget(self.data_data_text, 0, 6)
-		self.main_layout.addWidget(self.ip_octet_4_text, 0, 7)
+		self.main_layout.addWidget(self.data_input_text, 0, 7)
+		self.main_layout.addWidget(self.data_scalar_text, 0, 8)
+		self.main_layout.addWidget(self.data_update_ms_text, 0, 9)
+		self.main_layout.addWidget(self.ip_octet_4_text, 0, 10)
 		
 		self.main_layout.addWidget(self.number_txt, 1, 0)
 		self.main_layout.addWidget(add, 1, 1)
@@ -284,12 +320,15 @@ class sendWidget(QWidget):
 		self.main_layout.addWidget(self.data_type_cb, 1, 4)
 		self.main_layout.addWidget(self.data_length_le, 1, 5)
 		self.main_layout.addWidget(self.data_array[0], 1, 6)
-		self.main_layout.addWidget(self.ip_octet_4_le, 1, 7)
+		self.main_layout.addWidget(self.input_cb_array[0], 1, 7)
+		self.main_layout.addWidget(self.scalar_array[0], 1, 8)
+		self.main_layout.addWidget(self.update_ms_array[0], 1, 9)
+		self.main_layout.addWidget(self.ip_octet_4_le, 1, 10)
 		self.main_layout.addWidget(send, 1, 8)
 		self.resize(self.sizeHint())
 		
 		self.show()
-
+	
 	def sendEvent(self):
 		data = ( )
 		for i in range(0, self.data_length):
@@ -307,7 +346,12 @@ class sendWidget(QWidget):
 	def setNumber(self, number):
 		self.number = number
 		self.number_txt.setText(str(number) + '.')
-		
+	
+	def addControls(self, ComboBox):
+		for i in controls:
+			ComboBox.addItem(i)
+		return ComboBox
+	
 	def data_length_entry(self):
 		sender = self.sender()
 		try:
@@ -316,12 +360,37 @@ class sendWidget(QWidget):
 				for i in range(self.data_length, new_length):
 					self.data_array = self.data_array+[QLineEdit(self)]
 					self.main_layout.addWidget(self.data_array[i], i+1, 6)
+					
+					self.input_cb_array = self.input_cb_array+[QComboBox(self)]
+					self.main_layout.addWidget(self.input_cb_array[i], i+1, 7)
+					self.input_cb_array[i] = self.addControls(self.input_cb_array[i])
+					
+					self.scalar_array = self.scalar_array+[QLineEdit(self)]
+					self.main_layout.addWidget(self.scalar_array[i], i+1, 8)
+					
+					self.update_ms_array = self.update_ms_array+[QLineEdit(self)]
+					self.main_layout.addWidget(self.update_ms_array[i], i+1, 9)
 			elif(new_length<self.data_length):
 				for i in range(self.data_length, new_length, -1):
 					self.main_layout.removeWidget(self.data_array[-1])
 					self.data_array[-1].deleteLater()
 					self.data_array[-1] = None
 					self.data_array = self.data_array[:-1]
+					
+					self.main_layout.removeWidget(self.input_cb_array[-1])
+					self.input_cb_array[-1].deleteLater()
+					self.input_cb_array[-1] = None
+					self.input_cb_array = self.input_cb_array[:-1]
+					
+					self.main_layout.removeWidget(self.scalar_array[-1])
+					self.scalar_array[-1].deleteLater()
+					self.scalar_array[-1] = None
+					self.scalar_array = self.scalar_array[:-1]
+					
+					self.main_layout.removeWidget(self.update_ms_array[-1])
+					self.update_ms_array[-1].deleteLater()
+					self.update_ms_array[-1] = None
+					self.update_ms_array = self.update_ms_array[:-1]	
 			self.data_length = new_length
 					
 		except:
