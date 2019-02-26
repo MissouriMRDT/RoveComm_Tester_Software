@@ -259,6 +259,7 @@ class sendWidget(QWidget):
 	def initUI(self, parent, number):
 		try:
 			self.xboxCont = XboxController(controlCallBack, deadzone = 30, scale = 100, invertYAxis = True)
+			print("Controller COnnected")
 		except:
 			pass
 			
@@ -344,7 +345,7 @@ class sendWidget(QWidget):
 				data = (data) + (int(self.data_array[i].text()),)
 			
 			packet = RoveCommPacket(int(self.data_id_le.text()), types_text_to_byte[self.data_type_cb.currentText()], data, self.ip_octet_4_le.text())
-			oveComm.write(packet)	
+			RoveComm.write(packet)	
 		except:
 			print("Invalid Packet")
 	
@@ -401,6 +402,15 @@ class sendWidget(QWidget):
 		except:
 			return
 	
+	def updateXboxValues(self):
+		for i in range(0, len(self.data_array)):
+			text = self.input_cb_array[i].currentText()
+			if(text == "Line Entry"):
+				pass
+			elif(text == "Left Thumb X"):
+				print("In Thumb")
+				self.data_array[i].setText(str(int(self.scalar_array[i].text()))) #* self.xboxCont.LTHUMBX())
+	
 	def update_ms_le_textchanged(self):
 		try:
 			self.update_period_ms=int(self.update_ms_le.text())
@@ -408,12 +418,14 @@ class sendWidget(QWidget):
 				self.update_period_ms = 0
 			self.sendThread()
 		except:
-			print("Invalid time")
+			#print("Invalid time")
 			self.update_period_ms=0
 		
 	def sendThread(self):
 		if(self.update_period_ms != 0):
-			print("Sending")
+			#print("Updating Values")
+			self.updateXboxValues()
+			#print("Sending")
 			self.sendEvent()
 			print(self.update_period_ms)
 			threading.Timer(self.update_period_ms/1000, self.sendThread).start()
