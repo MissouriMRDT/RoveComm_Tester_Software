@@ -238,11 +238,16 @@ class Sender(QWidget):
 	def removeEvent(self, number):
 		sender = self.sender()
 		self.main_layout.removeWidget(self.send_widgets[-1])
+		self.send_widgets[number-1].close()
 		self.send_widgets[number-1].deleteLater()
 		self.send_widgets[number-1] = None
 		self.send_widgets = self.send_widgets[:number-1] + self.send_widgets[number:]
 		
 		self.redrawWidgets()
+		
+	def closeEvent(self, event):
+		for widget in self.send_widgets:
+			widget.close()
 		
 class sendWidget(QWidget):
 	def __init__(self, parent=None, number=1):
@@ -299,7 +304,10 @@ class sendWidget(QWidget):
 		self.data_array      = [QLineEdit(self)]
 		self.input_cb_array  = [QComboBox(self)]
 		self.scalar_array    = [QLineEdit(self)]
-		self.update_ms_array = [QLineEdit(self)]
+		
+		self.update_ms_le = QLineEdit(self)
+		self.update_ms_le.textChanged[str].connect(self.update_ms_le_textchanged)
+		self.update_period_ms = 0
 		
 		self.input_cb_array[0] = self.addControls(self.input_cb_array[0])
 		
@@ -322,20 +330,23 @@ class sendWidget(QWidget):
 		self.main_layout.addWidget(self.data_array[0], 1, 6)
 		self.main_layout.addWidget(self.input_cb_array[0], 1, 7)
 		self.main_layout.addWidget(self.scalar_array[0], 1, 8)
-		self.main_layout.addWidget(self.update_ms_array[0], 1, 9)
+		self.main_layout.addWidget(self.update_ms_le, 1, 9)
 		self.main_layout.addWidget(self.ip_octet_4_le, 1, 10)
-		self.main_layout.addWidget(send, 1, 8)
+		self.main_layout.addWidget(send, 1,11)
 		self.resize(self.sizeHint())
 		
 		self.show()
 	
 	def sendEvent(self):
 		data = ( )
-		for i in range(0, self.data_length):
-			data = (data) + (int(self.data_array[i].text()),)
+		try:
+			for i in range(0, self.data_length):
+				data = (data) + (int(self.data_array[i].text()),)
 			
-		packet = RoveCommPacket(int(self.data_id_le.text()), types_text_to_byte[self.data_type_cb.currentText()], data, self.ip_octet_4_le.text())
-		RoveComm.write(packet)			
+			packet = RoveCommPacket(int(self.data_id_le.text()), types_text_to_byte[self.data_type_cb.currentText()], data, self.ip_octet_4_le.text())
+			oveComm.write(packet)	
+		except:
+			print("Invalid Packet")
 	
 	def addEvent(self, parent):
 		self.parent().addEvent(self.number)
@@ -367,9 +378,7 @@ class sendWidget(QWidget):
 					
 					self.scalar_array = self.scalar_array+[QLineEdit(self)]
 					self.main_layout.addWidget(self.scalar_array[i], i+1, 8)
-					
-					self.update_ms_array = self.update_ms_array+[QLineEdit(self)]
-					self.main_layout.addWidget(self.update_ms_array[i], i+1, 9)
+
 			elif(new_length<self.data_length):
 				for i in range(self.data_length, new_length, -1):
 					self.main_layout.removeWidget(self.data_array[-1])
@@ -386,16 +395,33 @@ class sendWidget(QWidget):
 					self.scalar_array[-1].deleteLater()
 					self.scalar_array[-1] = None
 					self.scalar_array = self.scalar_array[:-1]
-					
-					self.main_layout.removeWidget(self.update_ms_array[-1])
-					self.update_ms_array[-1].deleteLater()
-					self.update_ms_array[-1] = None
-					self.update_ms_array = self.update_ms_array[:-1]	
+
 			self.data_length = new_length
 					
 		except:
 			return
 	
+	def update_ms_le_textchanged(self):
+		try:
+			self.update_period_ms=int(self.update_ms_le.text())
+			if(self.update_period_ms < 100):
+				self.update_period_ms = 0
+			self.sendThread()
+		except:
+			print("Invalid time")
+			self.update_period_ms=0
+		
+	def sendThread(self):
+		if(self.update_period_ms != 0):
+			print("Sending")
+			self.sendEvent()
+			print(self.update_period_ms)
+			threading.Timer(self.update_period_ms/1000, self.sendThread).start()
+		
+	def close(self):#On close, stop threading
+		print("Closing")
+		self.update_period_ms=0
+		
 	def keyPressEvent(self, e):
 		if e.key() == Qt.Key_Return:
 			self.sendEvent()
