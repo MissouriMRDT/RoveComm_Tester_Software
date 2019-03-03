@@ -1,3 +1,11 @@
+'''
+conda activate gui
+cd C:\\Users\andre\OneDrive\Documents\Rover\GitHub\Software\RoveComm_Tester_Software\RoveComm_Tester
+python RoveComm_Tester.py
+
+'''
+
+
 import sys
 import struct
 from PyQt5.QtCore import *
@@ -35,16 +43,20 @@ controls = ( "Line Entry"
 			,"Left Thumb Y"
 			,"Right Thumb X"
 			,"Right Thumb Y"
-			,"D Pad"
+			,"D Pad X"
+			,"D Pad Y"
 			,"L Trigger"
 			,"R Trigger"
 			,"L Bumper"
 			,"R Bumper"
 			,"A"
 			,"B"
-			,"C"
-			,"D"
-			,"Start")
+			,"X"
+			,"Y"
+			,"Back"
+			,"Start"
+			,"L Thumb"
+			,"R Thumb")
 
 class Reciever(QWidget):
 	
@@ -259,7 +271,7 @@ class sendWidget(QWidget):
 	def initUI(self, parent, number):
 		try:
 			self.xboxCont = XboxController(controlCallBack, deadzone = 30, scale = 100, invertYAxis = True)
-			print("Controller COnnected")
+			self.xboxCont.start()
 		except:
 			pass
 			
@@ -305,6 +317,7 @@ class sendWidget(QWidget):
 		self.data_array      = [QLineEdit(self)]
 		self.input_cb_array  = [QComboBox(self)]
 		self.scalar_array    = [QLineEdit(self)]
+		self.scalar_array[0].setText("1")
 		
 		self.update_ms_le = QLineEdit(self)
 		self.update_ms_le.textChanged[str].connect(self.update_ms_le_textchanged)
@@ -378,6 +391,7 @@ class sendWidget(QWidget):
 					self.input_cb_array[i] = self.addControls(self.input_cb_array[i])
 					
 					self.scalar_array = self.scalar_array+[QLineEdit(self)]
+					self.scalar_array[i].setText("1")
 					self.main_layout.addWidget(self.scalar_array[i], i+1, 8)
 
 			elif(new_length<self.data_length):
@@ -403,14 +417,48 @@ class sendWidget(QWidget):
 			return
 	
 	def updateXboxValues(self):
+		print(self.xboxCont.RTHUMBX)
 		for i in range(0, len(self.data_array)):
 			text = self.input_cb_array[i].currentText()
 			if(text == "Line Entry"):
 				pass
 			elif(text == "Left Thumb X"):
-				print("In Thumb")
-				self.data_array[i].setText(str(int(self.scalar_array[i].text()))) #* self.xboxCont.LTHUMBX())
-	
+				self.data_array[i].setText(str(int(float(self.scalar_array[i].text()) * self.xboxCont.LTHUMBX)))
+			elif(text == "Left Thumb Y"):
+				self.data_array[i].setText(str(int(float(self.scalar_array[i].text()) * self.xboxCont.LTHUMBY)))
+			elif(text == "Right Thumb X"):
+				self.data_array[i].setText(str(int(float(self.scalar_array[i].text()) * self.xboxCont.RTHUMBX)))
+			elif(text == "Right Thumb Y"):
+				self.data_array[i].setText(str(int(float(self.scalar_array[i].text()) * self.xboxCont.RTHUMBY)))
+			elif(text == "D Pad X"):
+				self.data_array[i].setText(str(int(float(self.scalar_array[i].text()) * self.xboxCont.DPAD[0])))
+			elif(text == "D Pad Y"):
+				self.data_array[i].setText(str(int(float(self.scalar_array[i].text()) * self.xboxCont.DPAD[1])))
+			elif(text == "L Trigger"):
+				self.data_array[i].setText(str(int(float(self.scalar_array[i].text()) * self.xboxCont.LTRIGGER)))
+			elif(text == "R Trigger"):
+				self.data_array[i].setText(str(int(float(self.scalar_array[i].text()) * self.xboxCont.RTRIGGER)))
+			elif(text == "L Bumper"):
+				self.data_array[i].setText(str(int(float(self.scalar_array[i].text()) * self.xboxCont.LB)))
+			elif(text == "R Bumper"):
+				self.data_array[i].setText(str(int(float(self.scalar_array[i].text()) * self.xboxCont.RB)))
+			elif(text == "A"):
+				self.data_array[i].setText(str(int(float(self.scalar_array[i].text()) * self.xboxCont.A)))
+			elif(text == "B"):
+				self.data_array[i].setText(str(int(float(self.scalar_array[i].text()) * self.xboxCont.B)))
+			elif(text == "X"):
+				self.data_array[i].setText(str(int(float(self.scalar_array[i].text()) * self.xboxCont.X)))
+			elif(text == "Y"):
+				self.data_array[i].setText(str(int(float(self.scalar_array[i].text()) * self.xboxCont.Y)))
+			elif(text == "Back"):
+				self.data_array[i].setText(str(int(float(self.scalar_array[i].text()) * self.xboxCont.BACK)))
+			elif(text == "Start"):
+				self.data_array[i].setText(str(int(float(self.scalar_array[i].text()) * self.xboxCont.START)))
+			elif(text == "L Thumb"):
+				self.data_array[i].setText(str(int(float(self.scalar_array[i].text()) * self.xboxCont.LEFTTHUMB)))
+			elif(text == "R Thumb"):
+				self.data_array[i].setText(str(int(float(self.scalar_array[i].text()) * self.xboxCont.RIGHTTHUMB)))
+				
 	def update_ms_le_textchanged(self):
 		try:
 			self.update_period_ms=int(self.update_ms_le.text())
@@ -432,6 +480,10 @@ class sendWidget(QWidget):
 		
 	def close(self):#On close, stop threading
 		print("Closing")
+		try:
+			self.xboxCont.stop()
+		except:
+			pass
 		self.update_period_ms=0
 		
 	def keyPressEvent(self, e):

@@ -55,10 +55,10 @@ class XboxController(threading.Thread):
     class XboxControls():
         LTHUMBX = 0
         LTHUMBY = 1
-        RTHUMBX = 2
+        RTHUMBX = 4
         RTHUMBY = 3
-        RTRIGGER = 4
-        LTRIGGER = 5
+        RTRIGGER = 2
+        LTRIGGER = 2
         A = 6
         B = 7
         X = 8
@@ -67,19 +67,19 @@ class XboxController(threading.Thread):
         RB = 11
         BACK = 12
         START = 13
-        XBOX = 14
-        LEFTTHUMB = 15
-        RIGHTTHUMB = 16
+        XBOX = 16
+        LEFTTHUMB = 14
+        RIGHTTHUMB = 15
         DPAD = 17
 
     #pygame axis constants for the analogue controls of the xbox controller
     class PyGameAxis():
         LTHUMBX = 0
         LTHUMBY = 1
-        RTHUMBX = 2
+        RTHUMBX = 4
         RTHUMBY = 3
-        RTRIGGER = 4
-        LTRIGGER = 5
+        RTRIGGER = 2
+        LTRIGGER = 2
 
     #pygame constants for the buttons of the xbox controller
     class PyGameButtons():
@@ -91,9 +91,9 @@ class XboxController(threading.Thread):
         RB = 5
         BACK = 6
         START = 7
-        XBOX = 8
-        LEFTTHUMB = 9
-        RIGHTTHUMB = 10
+        XBOX = 10
+        LEFTTHUMB = 8
+        RIGHTTHUMB = 9
 
     #map between pygame axis (analogue stick) ids and xbox control ids
     AXISCONTROLMAP = {PyGameAxis.LTHUMBX: XboxControls.LTHUMBX,
@@ -260,7 +260,6 @@ class XboxController(threading.Thread):
     def _start(self):
         
         self.running = True
-        
         #run until the controller is stopped
         while(self.running):
             #react to the pygame events that come from the xbox controller
@@ -344,18 +343,18 @@ class XboxController(threading.Thread):
         return value
     
 #tests
-'''
+
 if __name__ == '__main__':
 
     #generic call back
     def controlCallBack(xboxControlId, value):
-        print "Control Id = {}, Value = {}".format(xboxControlId, value)
+        print("Control Id = {}, Value = {}".format(xboxControlId, value))
 
     #specific callbacks for the left thumb (X & Y)
     def leftThumbX(xValue):
-        print "LX {}".format(xValue)
+        print("LX {}".format(xValue))
     def leftThumbY(yValue):
-        print "LY {}".format(yValue)
+        print("LY {}".format(yValue))
 
     #setup xbox controller, set out the deadzone and scale, also invert the Y Axis (for some reason in Pygame negative is up - wierd! 
     xboxCont = XboxController(controlCallBack, deadzone = 30, scale = 100, invertYAxis = True)
@@ -367,20 +366,19 @@ if __name__ == '__main__':
     try:
         #start the controller
         xboxCont.start()
-        print "xbox controller running"
+        print("xbox controller running")
         while True:
             time.sleep(1)
 
     #Ctrl C
     except KeyboardInterrupt:
-        print "User cancelled"
+        print("User cancelled")
     
     #error        
     except:
-        print "Unexpected error:", sys.exc_info()[0]
+        print("Unexpected error:", sys.exc_info()[0])
         raise
         
     finally:
         #stop the controller
         xboxCont.stop()
-		'''
