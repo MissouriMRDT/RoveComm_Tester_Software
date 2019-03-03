@@ -270,7 +270,7 @@ class sendWidget(QWidget):
 		
 	def initUI(self, parent, number):
 		try:
-			self.xboxCont = XboxController(controlCallBack, deadzone = 30, scale = 100, invertYAxis = True)
+			self.xboxCont = XboxController(deadzone = 10, scale = 100, invertYAxis = True) #controlCallBack
 			self.xboxCont.start()
 		except:
 			pass
