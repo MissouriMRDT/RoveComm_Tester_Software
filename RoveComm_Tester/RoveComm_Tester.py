@@ -287,16 +287,16 @@ class sendWidget(QWidget):
 		self.number_txt = QLabel(str(number) + '.', self)
 		self.number = number
 		
-		send = QPushButton('Send', self)
-		send.resize(send.sizeHint())
-		send.clicked.connect(self.sendEvent)
+		self.send = QPushButton('Send', self)
+		self.send.resize(self.send.sizeHint())
+		self.send.clicked.connect(self.sendEvent)
 		
 		add = QPushButton('Add', self)
-		add.resize(send.sizeHint())
+		add.resize(self.send.sizeHint())
 		add.clicked.connect(self.addEvent)
 		
 		remove = QPushButton('X', self)
-		remove.resize(send.sizeHint())
+		remove.resize(self.send.sizeHint())
 		remove.clicked.connect(self.removeEvent)
 		
 		self.data_id_le     = QLineEdit(self)
@@ -346,7 +346,7 @@ class sendWidget(QWidget):
 		self.main_layout.addWidget(self.scalar_array[0], 1, 8)
 		self.main_layout.addWidget(self.update_ms_le, 1, 9)
 		self.main_layout.addWidget(self.ip_octet_4_le, 1, 10)
-		self.main_layout.addWidget(send, 1,11)
+		self.main_layout.addWidget(self.send, 1,11)
 		self.resize(self.sizeHint())
 		
 		self.show()
@@ -359,7 +359,9 @@ class sendWidget(QWidget):
 			
 			packet = RoveCommPacket(int(self.data_id_le.text()), types_text_to_byte[self.data_type_cb.currentText()], data, self.ip_octet_4_le.text())
 			RoveComm.write(packet)	
+			self.send.setStyleSheet('background-color: lime')
 		except:
+			self.send.setStyleSheet('background-color: red')
 			print("Invalid Packet")
 	
 	def addEvent(self, parent):
@@ -464,6 +466,9 @@ class sendWidget(QWidget):
 			self.update_period_ms=int(self.update_ms_le.text())
 			if(self.update_period_ms < 100):
 				self.update_period_ms = 0
+				self.update_ms_le.setStyleSheet('color: red')
+			else:
+				self.update_ms_le.setStyleSheet('color: black')
 			self.sendThread()
 		except:
 			#print("Invalid time")
