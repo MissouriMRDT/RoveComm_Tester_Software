@@ -265,13 +265,26 @@ class Sender(QWidget):
 	def loadJSON(self):
 		load_file = QFileDialog.getOpenFileName(QFileDialog(), filter = "JSON(*.json)")	
 		data = json.loads(open(load_file[0]).read())
-		print(data["packet"][0]["data_id"])
-		print(data["packet"][0]["data"][1]["input"])
+		start_number = len(self.send_widgets)
+		for i in range(0, int(data["packet_count"])):
+			self.addEvent(start_number+i)
+			self.send_widgets[start_number+i].data_id_le.setText(data["packet"][i]["update_ms"])
+			self.send_widgets[start_number+i].update_ms_le.setText(data["packet"][i]["data_id"])
+			self.send_widgets[start_number+i].ip_octet_4_le.setText(data["packet"][i]["ip_octet_4"])
+			self.send_widgets[start_number+i].data_type_cb.setCurrentText(data["packet"][i]["data_type"])
+			
+			data_size = int(data["packet"][i]["data_size"])
+			self.send_widgets[start_number+i].data_length_le.setText(str(data_size))
+			for j in range(0, data_size):
+				self.send_widgets[start_number+i].data_array[j].setText(data["packet"][i]["data"][j]["data"])
+				self.send_widgets[start_number+i].scalar_array[j].setText(data["packet"][i]["data"][j]["scalar"])
+				self.send_widgets[start_number+i].input_cb_array[j].setCurrentText(data["packet"][i]["data"][j]["input"])
 		
 	def closeEvent(self, event):
 		for widget in self.send_widgets:
 			widget.close()
-		
+			
+			
 class sendWidget(QWidget):
 	def __init__(self, parent=None, number=1):
 		QWidget.__init__(self, parent=parent)
