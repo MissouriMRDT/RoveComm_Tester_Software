@@ -293,11 +293,11 @@ class Sender(QWidget):
 		except:
 			pass
 	def writeJSON(self):
-		
 		data = {
 				"packet_count" : len(self.send_widgets)
 				}
 		data["packet"] = []
+		
 		for i in range(0, len(self.send_widgets)):
 			try:
 				data["packet"].append({})
