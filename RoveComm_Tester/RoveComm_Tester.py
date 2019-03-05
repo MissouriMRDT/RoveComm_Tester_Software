@@ -271,7 +271,7 @@ class Sender(QWidget):
 	
 	def loadJSON(self):
 		try:
-			load_file = QFileDialog.getOpenFileName(QFileDialog(), filter = "JSON(*.json)")	
+			load_file = QFileDialog.getOpenFileName(QFileDialog(), filter = "JSON(*.json)", directory = "Configs/")	
 			data = json.loads(open(load_file[0]).read())
 			start_number = len(self.send_widgets)
 			for i in range(0, int(data["packet_count"])):
@@ -317,7 +317,7 @@ class Sender(QWidget):
 			except:
 				pass
 		try:		
-			save_file = QFileDialog.getSaveFileName(QFileDialog(), filter = "JSON(*.json)")			
+			save_file = QFileDialog.getSaveFileName(QFileDialog(), filter = "JSON(*.json)", directory = "Configs/")			
 			with open(save_file[0], 'w') as outfile:  
 					json.dump(data, outfile)
 		except:
