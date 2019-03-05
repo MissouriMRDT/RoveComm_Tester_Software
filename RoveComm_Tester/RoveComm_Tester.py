@@ -36,6 +36,11 @@ try:
 except:
 	pass
 	
+try:
+	os.mkdir('Configs')
+except:
+	pass
+	
 def controlCallBack(xboxControlId, value):
 	print("Control Id = {}, Value = {}".format(xboxControlId, value))
 	
