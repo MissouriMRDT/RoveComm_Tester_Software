@@ -2,7 +2,7 @@
 conda activate gui
 cd C:\\Users\andre\OneDrive\Documents\Rover\GitHub\Software\RoveComm_Tester_Software\RoveComm_Tester
 python RoveComm_Tester.py
-
+pyinstaller --windowed --onedir --icon=rover_1wP_icon.ico RoveComm_Tester.py
 '''
 
 
@@ -13,6 +13,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from RoveComm_Python import *
 import json
+import images_qr
 
 import threading
 import datetime
@@ -115,7 +116,7 @@ class Reciever(QWidget):
 		self.setLayout(hbox)
 		
 		self.setWindowTitle('Reciever')
-		self.setWindowIcon(QIcon('Rover.png')) 
+		self.setWindowIcon(QIcon(':/Rover.png')) 
 		self.resize(900,500)
 		
 		self.show()
@@ -244,7 +245,7 @@ class Sender(QWidget):
 		self.main_layout.addWidget(self.send_widgets[0])
 		
 		self.setWindowTitle('Sender')
-		self.setWindowIcon(QIcon('Rover.png')) 
+		self.setWindowIcon(QIcon(':/Rover.png')) 
 		
 		
 		self.resize(self.sizeHint())
