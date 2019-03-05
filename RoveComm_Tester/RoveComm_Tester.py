@@ -12,6 +12,7 @@ from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from RoveComm_Python import *
+import json
 
 import threading
 import datetime
@@ -221,9 +222,13 @@ class Sender(QWidget):
 		#fileMenu = menubar.addMenu('&File')
 		#fileMenu.addAction(exitAct)
 		
+		self.loadJson_pb = QPushButton("Load Config")
+		self.loadJson_pb.clicked.connect(self.loadJSON)
+		
 		self.send_widgets = [sendWidget(self, 1)]
 		
 		self.main_layout=QVBoxLayout(self)
+		self.main_layout.addWidget(self.loadJson_pb)
 		self.main_layout.addWidget(self.send_widgets[0])
 		
 		self.setWindowTitle('Sender')
@@ -256,6 +261,12 @@ class Sender(QWidget):
 		self.send_widgets = self.send_widgets[:number-1] + self.send_widgets[number:]
 		
 		self.redrawWidgets()
+	
+	def loadJSON(self):
+		load_file = QFileDialog.getOpenFileName(QFileDialog(), filter = "JSON(*.json)")	
+		data = json.loads(open(load_file[0]).read())
+		print(data["packet"][0]["data_id"])
+		print(data["packet"][0]["data"][1]["input"])
 		
 	def closeEvent(self, event):
 		for widget in self.send_widgets:
