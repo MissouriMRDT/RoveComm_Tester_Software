@@ -222,7 +222,7 @@ class Sender(QWidget):
 		#fileMenu = menubar.addMenu('&File')
 		#fileMenu.addAction(exitAct)
 		
-		self.loadJson_pb = QPushButton("Load Config")
+		self.loadJson_pb = QPushButton("Load Configs")
 		self.loadJson_pb.clicked.connect(self.loadJSON)
 		
 		self.writeJson_pb = QPushButton("Write Config")
@@ -271,25 +271,27 @@ class Sender(QWidget):
 	
 	def loadJSON(self):
 		try:
-			load_file = QFileDialog.getOpenFileName(QFileDialog(), filter = "JSON(*.json)", directory = "Configs/")	
-			data = json.loads(open(load_file[0]).read())
-			start_number = len(self.send_widgets)
-			for i in range(0, int(data["packet_count"])):
-				try:
-					self.addEvent(start_number+i)
-					self.send_widgets[start_number+i].data_id_le.setText(data["packet"][i]["data_id"])
-					self.send_widgets[start_number+i].update_ms_le.setText(data["packet"][i]["update_ms"])
-					self.send_widgets[start_number+i].ip_octet_4_le.setText(data["packet"][i]["ip_octet_4"])
-					self.send_widgets[start_number+i].data_type_cb.setCurrentText(data["packet"][i]["data_type"])
-					
-					data_size = int(data["packet"][i]["data_size"])
-					self.send_widgets[start_number+i].data_length_le.setText(str(data_size))
-					for j in range(0, data_size):
-						self.send_widgets[start_number+i].data_array[j].setText(data["packet"][i]["data"][j]["data"])
-						self.send_widgets[start_number+i].scalar_array[j].setText(data["packet"][i]["data"][j]["scalar"])
-						self.send_widgets[start_number+i].input_cb_array[j].setCurrentText(data["packet"][i]["data"][j]["input"])
-				except:
-					pass
+			load_files = QFileDialog.getOpenFileNames(QFileDialog(), filter = "JSON(*.json)", directory = "Configs/")	
+			print(load_files)
+			for k in range(0, len(load_files)):
+				data = json.loads(open(load_files[0][k]).read())
+				start_number = len(self.send_widgets)
+				for i in range(0, int(data["packet_count"])):
+					try:
+						self.addEvent(start_number+i)
+						self.send_widgets[start_number+i].data_id_le.setText(data["packet"][i]["data_id"])
+						self.send_widgets[start_number+i].update_ms_le.setText(data["packet"][i]["update_ms"])
+						self.send_widgets[start_number+i].ip_octet_4_le.setText(data["packet"][i]["ip_octet_4"])
+						self.send_widgets[start_number+i].data_type_cb.setCurrentText(data["packet"][i]["data_type"])
+						
+						data_size = int(data["packet"][i]["data_size"])
+						self.send_widgets[start_number+i].data_length_le.setText(str(data_size))
+						for j in range(0, data_size):
+							self.send_widgets[start_number+i].data_array[j].setText(data["packet"][i]["data"][j]["data"])
+							self.send_widgets[start_number+i].scalar_array[j].setText(data["packet"][i]["data"][j]["scalar"])
+							self.send_widgets[start_number+i].input_cb_array[j].setCurrentText(data["packet"][i]["data"][j]["input"])
+					except:
+						pass
 		except:
 			pass
 	def writeJSON(self):
