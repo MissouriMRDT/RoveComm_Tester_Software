@@ -1,9 +1,6 @@
 import json
 
-json_data=open("TestSaveFile.txt").read()
+json_data=open("ValkyrieDriveConfig.json").read()
 
 data = json.loads(json_data)
 print(data)
-
-print(data["packet"][0]["data_id"])
-print(data["packet"][0]["data"][1]["input"])

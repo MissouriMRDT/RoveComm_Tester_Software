@@ -225,10 +225,17 @@ class Sender(QWidget):
 		self.loadJson_pb = QPushButton("Load Config")
 		self.loadJson_pb.clicked.connect(self.loadJSON)
 		
+		self.writeJson_pb = QPushButton("Write Config")
+		self.writeJson_pb.clicked.connect(self.writeJSON)
+		
+		self.splitter = QSplitter()
+		self.splitter.addWidget(self.loadJson_pb)
+		self.splitter.addWidget(self.writeJson_pb)
+		
 		self.send_widgets = [sendWidget(self, 1)]
 		
 		self.main_layout=QVBoxLayout(self)
-		self.main_layout.addWidget(self.loadJson_pb)
+		self.main_layout.addWidget(self.splitter)
 		self.main_layout.addWidget(self.send_widgets[0])
 		
 		self.setWindowTitle('Sender')
@@ -263,22 +270,58 @@ class Sender(QWidget):
 		self.redrawWidgets()
 	
 	def loadJSON(self):
-		load_file = QFileDialog.getOpenFileName(QFileDialog(), filter = "JSON(*.json)")	
-		data = json.loads(open(load_file[0]).read())
-		start_number = len(self.send_widgets)
-		for i in range(0, int(data["packet_count"])):
-			self.addEvent(start_number+i)
-			self.send_widgets[start_number+i].data_id_le.setText(data["packet"][i]["update_ms"])
-			self.send_widgets[start_number+i].update_ms_le.setText(data["packet"][i]["data_id"])
-			self.send_widgets[start_number+i].ip_octet_4_le.setText(data["packet"][i]["ip_octet_4"])
-			self.send_widgets[start_number+i].data_type_cb.setCurrentText(data["packet"][i]["data_type"])
+		try:
+			load_file = QFileDialog.getOpenFileName(QFileDialog(), filter = "JSON(*.json)")	
+			data = json.loads(open(load_file[0]).read())
+			start_number = len(self.send_widgets)
+			for i in range(0, int(data["packet_count"])):
+				try:
+					self.addEvent(start_number+i)
+					self.send_widgets[start_number+i].data_id_le.setText(data["packet"][i]["data_id"])
+					self.send_widgets[start_number+i].update_ms_le.setText(data["packet"][i]["update_ms"])
+					self.send_widgets[start_number+i].ip_octet_4_le.setText(data["packet"][i]["ip_octet_4"])
+					self.send_widgets[start_number+i].data_type_cb.setCurrentText(data["packet"][i]["data_type"])
+					
+					data_size = int(data["packet"][i]["data_size"])
+					self.send_widgets[start_number+i].data_length_le.setText(str(data_size))
+					for j in range(0, data_size):
+						self.send_widgets[start_number+i].data_array[j].setText(data["packet"][i]["data"][j]["data"])
+						self.send_widgets[start_number+i].scalar_array[j].setText(data["packet"][i]["data"][j]["scalar"])
+						self.send_widgets[start_number+i].input_cb_array[j].setCurrentText(data["packet"][i]["data"][j]["input"])
+				except:
+					pass
+		except:
+			pass
+	def writeJSON(self):
+		
+		data = {
+				"packet_count" : len(self.send_widgets)
+				}
+		data["packet"] = []
+		for i in range(0, len(self.send_widgets)):
+			try:
+				data["packet"].append({})
+				data["packet"][i]["data_id"] = self.send_widgets[i].data_id_le.text()
+				data["packet"][i]["data_type"] = self.send_widgets[i].data_type_cb.currentText()
+				data["packet"][i]["data_size"] = self.send_widgets[i].data_length_le.text()
+				data["packet"][i]["update_ms"] = self.send_widgets[i].update_ms_le.text()
+				data["packet"][i]["ip_octet_4"] = self.send_widgets[i].ip_octet_4_le.text()
+				
+				data["packet"][i]["data"] = []
+				for j in range(0, int(self.send_widgets[i].data_length_le.text())):
+					data["packet"][i]["data"].append({})
+					data["packet"][i]["data"][j]["data"] = self.send_widgets[i].data_array[j].text()
+					data["packet"][i]["data"][j]["scalar"] = self.send_widgets[i].scalar_array[j].text()
+					data["packet"][i]["data"][j]["input"] = self.send_widgets[i].input_cb_array[j].currentText()
 			
-			data_size = int(data["packet"][i]["data_size"])
-			self.send_widgets[start_number+i].data_length_le.setText(str(data_size))
-			for j in range(0, data_size):
-				self.send_widgets[start_number+i].data_array[j].setText(data["packet"][i]["data"][j]["data"])
-				self.send_widgets[start_number+i].scalar_array[j].setText(data["packet"][i]["data"][j]["scalar"])
-				self.send_widgets[start_number+i].input_cb_array[j].setCurrentText(data["packet"][i]["data"][j]["input"])
+			except:
+				pass
+		try:		
+			save_file = QFileDialog.getSaveFileName(QFileDialog(), filter = "JSON(*.json)")			
+			with open(save_file[0], 'w') as outfile:  
+					json.dump(data, outfile)
+		except:
+			pass
 		
 	def closeEvent(self, event):
 		for widget in self.send_widgets:
@@ -503,7 +546,8 @@ class sendWidget(QWidget):
 			#print("Updating Values")
 			self.updateXboxValues()
 			#print("Sending")
-			self.sendEvent()
+			
+			self.send.animateClick()
 			print(self.update_period_ms)
 			threading.Timer(self.update_period_ms/1000, self.sendThread).start()
 		
