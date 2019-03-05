@@ -1,3 +1,11 @@
+'''
+conda activate gui
+cd C:\\Users\andre\OneDrive\Documents\Rover\GitHub\Software\RoveComm_Tester_Software\RoveComm_Tester
+python RoveComm_Tester.py
+
+'''
+
+
 import sys
 import struct
 from PyQt5.QtCore import *
@@ -9,6 +17,7 @@ import threading
 import datetime
 import time
 import os
+from XboxController import *
 
 RoveComm = RoveCommEthernetUdp()
 
@@ -25,6 +34,29 @@ try:
 	os.mkdir('0-CSV Outputs')
 except:
 	pass
+	
+def controlCallBack(xboxControlId, value):
+	print("Control Id = {}, Value = {}".format(xboxControlId, value))
+	
+controls = ( "Line Entry"
+			,"Left Thumb X"
+			,"Left Thumb Y"
+			,"Right Thumb X"
+			,"Right Thumb Y"
+			,"D Pad X"
+			,"D Pad Y"
+			,"L Trigger"
+			,"R Trigger"
+			,"L Bumper"
+			,"R Bumper"
+			,"A"
+			,"B"
+			,"X"
+			,"Y"
+			,"Back"
+			,"Start"
+			,"L Thumb"
+			,"R Thumb")
 
 class Reciever(QWidget):
 	
@@ -218,11 +250,16 @@ class Sender(QWidget):
 	def removeEvent(self, number):
 		sender = self.sender()
 		self.main_layout.removeWidget(self.send_widgets[-1])
+		self.send_widgets[number-1].close()
 		self.send_widgets[number-1].deleteLater()
 		self.send_widgets[number-1] = None
 		self.send_widgets = self.send_widgets[:number-1] + self.send_widgets[number:]
 		
 		self.redrawWidgets()
+		
+	def closeEvent(self, event):
+		for widget in self.send_widgets:
+			widget.close()
 		
 class sendWidget(QWidget):
 	def __init__(self, parent=None, number=1):
@@ -232,25 +269,34 @@ class sendWidget(QWidget):
 		self.initUI(parent, number)
 		
 	def initUI(self, parent, number):
+		try:
+			self.xboxCont = XboxController(deadzone = 10, scale = 100, invertYAxis = True) #controlCallBack
+			self.xboxCont.start()
+		except:
+			pass
+			
 		self.data_id_text = QLabel('Data ID', self)
 		self.data_type_text = QLabel('Data Type', self)
 		self.data_size_text = QLabel('Data Size', self)
 		self.data_data_text = QLabel('Data', self)
+		self.data_input_text = QLabel('Input', self)
+		self.data_scalar_text = QLabel('Scalar', self)
+		self.data_update_ms_text = QLabel('Update ms', self)
 		self.ip_octet_4_text = QLabel('IP Octet 4', self)
 		
 		self.number_txt = QLabel(str(number) + '.', self)
 		self.number = number
 		
-		send = QPushButton('Send', self)
-		send.resize(send.sizeHint())
-		send.clicked.connect(self.sendEvent)
+		self.send = QPushButton('Send', self)
+		self.send.resize(self.send.sizeHint())
+		self.send.clicked.connect(self.sendEvent)
 		
 		add = QPushButton('Add', self)
-		add.resize(send.sizeHint())
+		add.resize(self.send.sizeHint())
 		add.clicked.connect(self.addEvent)
 		
 		remove = QPushButton('X', self)
-		remove.resize(send.sizeHint())
+		remove.resize(self.send.sizeHint())
 		remove.clicked.connect(self.removeEvent)
 		
 		self.data_id_le     = QLineEdit(self)
@@ -268,14 +314,26 @@ class sendWidget(QWidget):
 		self.data_type_cb.addItem("Int32")
 		self.data_type_cb.addItem("uInt32")
 		
-		self.data_array    = [QLineEdit(self)]
+		self.data_array      = [QLineEdit(self)]
+		self.input_cb_array  = [QComboBox(self)]
+		self.scalar_array    = [QLineEdit(self)]
+		self.scalar_array[0].setText("1")
+		
+		self.update_ms_le = QLineEdit(self)
+		self.update_ms_le.textChanged[str].connect(self.update_ms_le_textchanged)
+		self.update_period_ms = 0
+		
+		self.input_cb_array[0] = self.addControls(self.input_cb_array[0])
 		
 		self.main_layout=QGridLayout(self)
 		self.main_layout.addWidget(self.data_id_text, 0, 3)
 		self.main_layout.addWidget(self.data_type_text, 0, 4)
 		self.main_layout.addWidget(self.data_size_text, 0, 5)
 		self.main_layout.addWidget(self.data_data_text, 0, 6)
-		self.main_layout.addWidget(self.ip_octet_4_text, 0, 7)
+		self.main_layout.addWidget(self.data_input_text, 0, 7)
+		self.main_layout.addWidget(self.data_scalar_text, 0, 8)
+		self.main_layout.addWidget(self.data_update_ms_text, 0, 9)
+		self.main_layout.addWidget(self.ip_octet_4_text, 0, 10)
 		
 		self.main_layout.addWidget(self.number_txt, 1, 0)
 		self.main_layout.addWidget(add, 1, 1)
@@ -284,19 +342,27 @@ class sendWidget(QWidget):
 		self.main_layout.addWidget(self.data_type_cb, 1, 4)
 		self.main_layout.addWidget(self.data_length_le, 1, 5)
 		self.main_layout.addWidget(self.data_array[0], 1, 6)
-		self.main_layout.addWidget(self.ip_octet_4_le, 1, 7)
-		self.main_layout.addWidget(send, 1, 8)
+		self.main_layout.addWidget(self.input_cb_array[0], 1, 7)
+		self.main_layout.addWidget(self.scalar_array[0], 1, 8)
+		self.main_layout.addWidget(self.update_ms_le, 1, 9)
+		self.main_layout.addWidget(self.ip_octet_4_le, 1, 10)
+		self.main_layout.addWidget(self.send, 1,11)
 		self.resize(self.sizeHint())
 		
 		self.show()
-
+	
 	def sendEvent(self):
 		data = ( )
-		for i in range(0, self.data_length):
-			data = (data) + (int(self.data_array[i].text()),)
+		try:
+			for i in range(0, self.data_length):
+				data = (data) + (int(self.data_array[i].text()),)
 			
-		packet = RoveCommPacket(int(self.data_id_le.text()), types_text_to_byte[self.data_type_cb.currentText()], data, self.ip_octet_4_le.text())
-		RoveComm.write(packet)			
+			packet = RoveCommPacket(int(self.data_id_le.text()), types_text_to_byte[self.data_type_cb.currentText()], data, self.ip_octet_4_le.text())
+			RoveComm.write(packet)	
+			self.send.setStyleSheet('background-color: lime')
+		except:
+			self.send.setStyleSheet('background-color: red')
+			print("Invalid Packet")
 	
 	def addEvent(self, parent):
 		self.parent().addEvent(self.number)
@@ -307,7 +373,12 @@ class sendWidget(QWidget):
 	def setNumber(self, number):
 		self.number = number
 		self.number_txt.setText(str(number) + '.')
-		
+	
+	def addControls(self, ComboBox):
+		for i in controls:
+			ComboBox.addItem(i)
+		return ComboBox
+	
 	def data_length_entry(self):
 		sender = self.sender()
 		try:
@@ -316,17 +387,110 @@ class sendWidget(QWidget):
 				for i in range(self.data_length, new_length):
 					self.data_array = self.data_array+[QLineEdit(self)]
 					self.main_layout.addWidget(self.data_array[i], i+1, 6)
+					
+					self.input_cb_array = self.input_cb_array+[QComboBox(self)]
+					self.main_layout.addWidget(self.input_cb_array[i], i+1, 7)
+					self.input_cb_array[i] = self.addControls(self.input_cb_array[i])
+					
+					self.scalar_array = self.scalar_array+[QLineEdit(self)]
+					self.scalar_array[i].setText("1")
+					self.main_layout.addWidget(self.scalar_array[i], i+1, 8)
+
 			elif(new_length<self.data_length):
 				for i in range(self.data_length, new_length, -1):
 					self.main_layout.removeWidget(self.data_array[-1])
 					self.data_array[-1].deleteLater()
 					self.data_array[-1] = None
 					self.data_array = self.data_array[:-1]
+					
+					self.main_layout.removeWidget(self.input_cb_array[-1])
+					self.input_cb_array[-1].deleteLater()
+					self.input_cb_array[-1] = None
+					self.input_cb_array = self.input_cb_array[:-1]
+					
+					self.main_layout.removeWidget(self.scalar_array[-1])
+					self.scalar_array[-1].deleteLater()
+					self.scalar_array[-1] = None
+					self.scalar_array = self.scalar_array[:-1]
+
 			self.data_length = new_length
 					
 		except:
 			return
 	
+	def updateXboxValues(self):
+		print(self.xboxCont.RTHUMBX)
+		for i in range(0, len(self.data_array)):
+			text = self.input_cb_array[i].currentText()
+			if(text == "Line Entry"):
+				pass
+			elif(text == "Left Thumb X"):
+				self.data_array[i].setText(str(int(float(self.scalar_array[i].text()) * self.xboxCont.LTHUMBX)))
+			elif(text == "Left Thumb Y"):
+				self.data_array[i].setText(str(int(float(self.scalar_array[i].text()) * self.xboxCont.LTHUMBY)))
+			elif(text == "Right Thumb X"):
+				self.data_array[i].setText(str(int(float(self.scalar_array[i].text()) * self.xboxCont.RTHUMBX)))
+			elif(text == "Right Thumb Y"):
+				self.data_array[i].setText(str(int(float(self.scalar_array[i].text()) * self.xboxCont.RTHUMBY)))
+			elif(text == "D Pad X"):
+				self.data_array[i].setText(str(int(float(self.scalar_array[i].text()) * self.xboxCont.DPAD[0])))
+			elif(text == "D Pad Y"):
+				self.data_array[i].setText(str(int(float(self.scalar_array[i].text()) * self.xboxCont.DPAD[1])))
+			elif(text == "L Trigger"):
+				self.data_array[i].setText(str(int(float(self.scalar_array[i].text()) * self.xboxCont.LTRIGGER)))
+			elif(text == "R Trigger"):
+				self.data_array[i].setText(str(int(float(self.scalar_array[i].text()) * self.xboxCont.RTRIGGER)))
+			elif(text == "L Bumper"):
+				self.data_array[i].setText(str(int(float(self.scalar_array[i].text()) * self.xboxCont.LB)))
+			elif(text == "R Bumper"):
+				self.data_array[i].setText(str(int(float(self.scalar_array[i].text()) * self.xboxCont.RB)))
+			elif(text == "A"):
+				self.data_array[i].setText(str(int(float(self.scalar_array[i].text()) * self.xboxCont.A)))
+			elif(text == "B"):
+				self.data_array[i].setText(str(int(float(self.scalar_array[i].text()) * self.xboxCont.B)))
+			elif(text == "X"):
+				self.data_array[i].setText(str(int(float(self.scalar_array[i].text()) * self.xboxCont.X)))
+			elif(text == "Y"):
+				self.data_array[i].setText(str(int(float(self.scalar_array[i].text()) * self.xboxCont.Y)))
+			elif(text == "Back"):
+				self.data_array[i].setText(str(int(float(self.scalar_array[i].text()) * self.xboxCont.BACK)))
+			elif(text == "Start"):
+				self.data_array[i].setText(str(int(float(self.scalar_array[i].text()) * self.xboxCont.START)))
+			elif(text == "L Thumb"):
+				self.data_array[i].setText(str(int(float(self.scalar_array[i].text()) * self.xboxCont.LEFTTHUMB)))
+			elif(text == "R Thumb"):
+				self.data_array[i].setText(str(int(float(self.scalar_array[i].text()) * self.xboxCont.RIGHTTHUMB)))
+				
+	def update_ms_le_textchanged(self):
+		try:
+			self.update_period_ms=int(self.update_ms_le.text())
+			if(self.update_period_ms < 100):
+				self.update_period_ms = 0
+				self.update_ms_le.setStyleSheet('color: red')
+			else:
+				self.update_ms_le.setStyleSheet('color: black')
+			self.sendThread()
+		except:
+			#print("Invalid time")
+			self.update_period_ms=0
+		
+	def sendThread(self):
+		if(self.update_period_ms != 0):
+			#print("Updating Values")
+			self.updateXboxValues()
+			#print("Sending")
+			self.sendEvent()
+			print(self.update_period_ms)
+			threading.Timer(self.update_period_ms/1000, self.sendThread).start()
+		
+	def close(self):#On close, stop threading
+		print("Closing")
+		try:
+			self.xboxCont.stop()
+		except:
+			pass
+		self.update_period_ms=0
+		
 	def keyPressEvent(self, e):
 		if e.key() == Qt.Key_Return:
 			self.sendEvent()
