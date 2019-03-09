@@ -345,7 +345,7 @@ class sendWidget(QWidget):
 		
 	def initUI(self, parent, number):
 		try:
-			self.xboxCont = XboxController(deadzone = 10, scale = 100, invertYAxis = True) #controlCallBack
+			self.xboxCont = XboxController(deadzone = 20, scale = 100, invertYAxis = True) #controlCallBack
 			self.xboxCont.start()
 		except:
 			pass
@@ -496,7 +496,6 @@ class sendWidget(QWidget):
 			return
 	
 	def updateXboxValues(self):
-		print(self.xboxCont.RTHUMBX)
 		for i in range(0, len(self.data_array)):
 			text = self.input_cb_array[i].currentText()
 			if(text == "Line Entry"):
@@ -554,7 +553,7 @@ class sendWidget(QWidget):
 		
 		
 	def sendThread(self):
-		print(self.update_period_ms)
+		#print(self.update_period_ms)
 		if(self.update_period_ms != 0):
 			try:
 				self.updateXboxValues()
