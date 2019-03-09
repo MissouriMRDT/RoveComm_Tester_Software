@@ -349,7 +349,9 @@ class sendWidget(QWidget):
 			self.xboxCont.start()
 		except:
 			pass
-			
+		self.updateTimer = QTimer()
+		self.updateTimer.timeout.connect(self.sendThread)
+		
 		self.data_id_text = QLabel('Data ID', self)
 		self.data_type_text = QLabel('Data Type', self)
 		self.data_size_text = QLabel('Data Size', self)
@@ -542,30 +544,32 @@ class sendWidget(QWidget):
 			if(self.update_period_ms < 100):
 				self.update_period_ms = 0
 				self.update_ms_le.setStyleSheet('color: red')
+				self.updateTimer.stop()
 			else:
 				self.update_ms_le.setStyleSheet('color: black')
-			self.sendThread()
+				self.updateTimer.start(self.update_period_ms)
 		except:
 			#print("Invalid time")
 			self.update_period_ms=0
 		
+		
 	def sendThread(self):
+		print(self.update_period_ms)
 		if(self.update_period_ms != 0):
-			#print("Updating Values")
-			self.updateXboxValues()
-			#print("Sending")
+			try:
+				self.updateXboxValues()
+			except:
+				pass
 			
 			self.send.animateClick()
-			print(self.update_period_ms)
-			threading.Timer(self.update_period_ms/1000, self.sendThread).start()
-		
+			
 	def close(self):#On close, stop threading
 		print("Closing")
 		try:
 			self.xboxCont.stop()
 		except:
 			pass
-		self.update_period_ms=0
+		self.updateTimer.stop()
 		
 	def keyPressEvent(self, e):
 		if e.key() == Qt.Key_Return:
