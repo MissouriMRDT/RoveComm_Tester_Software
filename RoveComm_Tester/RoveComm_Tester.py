@@ -1,8 +1,5 @@
 '''
-conda activate gui
-cd C:\\Users\andre\OneDrive\Documents\Rover\GitHub\Software\RoveComm_Tester_Software\RoveComm_Tester
-python RoveComm_Tester.py
-
+pyinstaller --windowed --onedir --icon=rover_1wP_icon.ico RoveComm_Tester.py
 '''
 
 
@@ -12,6 +9,8 @@ from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from RoveComm_Python import *
+import json
+import images_qr
 
 import threading
 import datetime
@@ -32,6 +31,11 @@ types_text_to_byte  = {
 					  
 try:
 	os.mkdir('0-CSV Outputs')
+except:
+	pass
+	
+try:
+	os.mkdir('1-Configs')
 except:
 	pass
 	
@@ -109,7 +113,7 @@ class Reciever(QWidget):
 		self.setLayout(hbox)
 		
 		self.setWindowTitle('Reciever')
-		self.setWindowIcon(QIcon('Rover.png')) 
+		self.setWindowIcon(QIcon(':/Rover.png')) 
 		self.resize(900,500)
 		
 		self.show()
@@ -221,13 +225,24 @@ class Sender(QWidget):
 		#fileMenu = menubar.addMenu('&File')
 		#fileMenu.addAction(exitAct)
 		
+		self.loadJson_pb = QPushButton("Load 1-Configs")
+		self.loadJson_pb.clicked.connect(self.loadJSON)
+		
+		self.writeJson_pb = QPushButton("Write Config")
+		self.writeJson_pb.clicked.connect(self.writeJSON)
+		
+		self.splitter = QSplitter()
+		self.splitter.addWidget(self.loadJson_pb)
+		self.splitter.addWidget(self.writeJson_pb)
+		
 		self.send_widgets = [sendWidget(self, 1)]
 		
 		self.main_layout=QVBoxLayout(self)
+		self.main_layout.addWidget(self.splitter)
 		self.main_layout.addWidget(self.send_widgets[0])
 		
 		self.setWindowTitle('Sender')
-		self.setWindowIcon(QIcon('Rover.png')) 
+		self.setWindowIcon(QIcon(':/Rover.png')) 
 		
 		
 		self.resize(self.sizeHint())
@@ -256,11 +271,68 @@ class Sender(QWidget):
 		self.send_widgets = self.send_widgets[:number-1] + self.send_widgets[number:]
 		
 		self.redrawWidgets()
+	
+	def loadJSON(self):
+		try:
+			load_files = QFileDialog.getOpenFileNames(QFileDialog(), filter = "JSON(*.json)", directory = "1-Configs/")	
+			print(load_files)
+			for k in range(0, len(load_files)):
+				data = json.loads(open(load_files[0][k]).read())
+				start_number = len(self.send_widgets)
+				for i in range(0, int(data["packet_count"])):
+					try:
+						self.addEvent(start_number+i)
+						self.send_widgets[start_number+i].data_id_le.setText(data["packet"][i]["data_id"])
+						self.send_widgets[start_number+i].update_ms_le.setText(data["packet"][i]["update_ms"])
+						self.send_widgets[start_number+i].ip_octet_4_le.setText(data["packet"][i]["ip_octet_4"])
+						self.send_widgets[start_number+i].data_type_cb.setCurrentText(data["packet"][i]["data_type"])
+						
+						data_size = int(data["packet"][i]["data_size"])
+						self.send_widgets[start_number+i].data_length_le.setText(str(data_size))
+						for j in range(0, data_size):
+							self.send_widgets[start_number+i].data_array[j].setText(data["packet"][i]["data"][j]["data"])
+							self.send_widgets[start_number+i].scalar_array[j].setText(data["packet"][i]["data"][j]["scalar"])
+							self.send_widgets[start_number+i].input_cb_array[j].setCurrentText(data["packet"][i]["data"][j]["input"])
+					except:
+						pass
+		except:
+			pass
+	def writeJSON(self):
+		data = {
+				"packet_count" : len(self.send_widgets)
+				}
+		data["packet"] = []
+		
+		for i in range(0, len(self.send_widgets)):
+			try:
+				data["packet"].append({})
+				data["packet"][i]["data_id"] = self.send_widgets[i].data_id_le.text()
+				data["packet"][i]["data_type"] = self.send_widgets[i].data_type_cb.currentText()
+				data["packet"][i]["data_size"] = self.send_widgets[i].data_length_le.text()
+				data["packet"][i]["update_ms"] = self.send_widgets[i].update_ms_le.text()
+				data["packet"][i]["ip_octet_4"] = self.send_widgets[i].ip_octet_4_le.text()
+				
+				data["packet"][i]["data"] = []
+				for j in range(0, int(self.send_widgets[i].data_length_le.text())):
+					data["packet"][i]["data"].append({})
+					data["packet"][i]["data"][j]["data"] = self.send_widgets[i].data_array[j].text()
+					data["packet"][i]["data"][j]["scalar"] = self.send_widgets[i].scalar_array[j].text()
+					data["packet"][i]["data"][j]["input"] = self.send_widgets[i].input_cb_array[j].currentText()
+			
+			except:
+				pass
+		try:		
+			save_file = QFileDialog.getSaveFileName(QFileDialog(), filter = "JSON(*.json)", directory = "1-Configs/")			
+			with open(save_file[0], 'w') as outfile:  
+					json.dump(data, outfile)
+		except:
+			pass
 		
 	def closeEvent(self, event):
 		for widget in self.send_widgets:
 			widget.close()
-		
+			
+			
 class sendWidget(QWidget):
 	def __init__(self, parent=None, number=1):
 		QWidget.__init__(self, parent=parent)
@@ -270,11 +342,13 @@ class sendWidget(QWidget):
 		
 	def initUI(self, parent, number):
 		try:
-			self.xboxCont = XboxController(deadzone = 10, scale = 100, invertYAxis = True) #controlCallBack
+			self.xboxCont = XboxController(deadzone = 20, scale = 100, invertYAxis = True) #controlCallBack
 			self.xboxCont.start()
 		except:
 			pass
-			
+		self.updateTimer = QTimer()
+		self.updateTimer.timeout.connect(self.sendThread)
+		
 		self.data_id_text = QLabel('Data ID', self)
 		self.data_type_text = QLabel('Data Type', self)
 		self.data_size_text = QLabel('Data Size', self)
@@ -419,7 +493,6 @@ class sendWidget(QWidget):
 			return
 	
 	def updateXboxValues(self):
-		print(self.xboxCont.RTHUMBX)
 		for i in range(0, len(self.data_array)):
 			text = self.input_cb_array[i].currentText()
 			if(text == "Line Entry"):
@@ -467,29 +540,32 @@ class sendWidget(QWidget):
 			if(self.update_period_ms < 100):
 				self.update_period_ms = 0
 				self.update_ms_le.setStyleSheet('color: red')
+				self.updateTimer.stop()
 			else:
 				self.update_ms_le.setStyleSheet('color: black')
-			self.sendThread()
+				self.updateTimer.start(self.update_period_ms)
 		except:
 			#print("Invalid time")
 			self.update_period_ms=0
 		
-	def sendThread(self):
-		if(self.update_period_ms != 0):
-			#print("Updating Values")
-			self.updateXboxValues()
-			#print("Sending")
-			self.sendEvent()
-			print(self.update_period_ms)
-			threading.Timer(self.update_period_ms/1000, self.sendThread).start()
 		
+	def sendThread(self):
+		#print(self.update_period_ms)
+		if(self.update_period_ms != 0):
+			try:
+				self.updateXboxValues()
+			except:
+				pass
+			
+			self.send.animateClick()
+			
 	def close(self):#On close, stop threading
 		print("Closing")
 		try:
 			self.xboxCont.stop()
 		except:
 			pass
-		self.update_period_ms=0
+		self.updateTimer.stop()
 		
 	def keyPressEvent(self, e):
 		if e.key() == Qt.Key_Return:
