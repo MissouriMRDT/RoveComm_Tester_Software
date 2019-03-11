@@ -1,7 +1,4 @@
 '''
-conda activate gui
-cd C:\\Users\andre\OneDrive\Documents\Rover\GitHub\Software\RoveComm_Tester_Software\RoveComm_Tester
-python RoveComm_Tester.py
 pyinstaller --windowed --onedir --icon=rover_1wP_icon.ico RoveComm_Tester.py
 '''
 
@@ -38,7 +35,7 @@ except:
 	pass
 	
 try:
-	os.mkdir('Configs')
+	os.mkdir('1-Configs')
 except:
 	pass
 	
@@ -228,7 +225,7 @@ class Sender(QWidget):
 		#fileMenu = menubar.addMenu('&File')
 		#fileMenu.addAction(exitAct)
 		
-		self.loadJson_pb = QPushButton("Load Configs")
+		self.loadJson_pb = QPushButton("Load 1-Configs")
 		self.loadJson_pb.clicked.connect(self.loadJSON)
 		
 		self.writeJson_pb = QPushButton("Write Config")
@@ -277,7 +274,7 @@ class Sender(QWidget):
 	
 	def loadJSON(self):
 		try:
-			load_files = QFileDialog.getOpenFileNames(QFileDialog(), filter = "JSON(*.json)", directory = "Configs/")	
+			load_files = QFileDialog.getOpenFileNames(QFileDialog(), filter = "JSON(*.json)", directory = "1-Configs/")	
 			print(load_files)
 			for k in range(0, len(load_files)):
 				data = json.loads(open(load_files[0][k]).read())
@@ -325,7 +322,7 @@ class Sender(QWidget):
 			except:
 				pass
 		try:		
-			save_file = QFileDialog.getSaveFileName(QFileDialog(), filter = "JSON(*.json)", directory = "Configs/")			
+			save_file = QFileDialog.getSaveFileName(QFileDialog(), filter = "JSON(*.json)", directory = "1-Configs/")			
 			with open(save_file[0], 'w') as outfile:  
 					json.dump(data, outfile)
 		except:
