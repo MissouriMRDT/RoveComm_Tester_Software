@@ -1,1 +1,0 @@
-{"packet_count": 1, "packet": [{"ip_octet_4": "134", "update_ms": "200", "data": [{"input": "Left Thumb Y", "scalar": "1", "data": "0"}, {"input": "Right Thumb Y", "scalar": "1", "data": "0"}], "data_type": "Int16", "data_size": "2", "data_id": "1000"}]}

@@ -225,7 +225,7 @@ class Sender(QWidget):
 		#fileMenu = menubar.addMenu('&File')
 		#fileMenu.addAction(exitAct)
 		
-		self.loadJson_pb = QPushButton("Load 1-Configs")
+		self.loadJson_pb = QPushButton("Load Configs")
 		self.loadJson_pb.clicked.connect(self.loadJSON)
 		
 		self.writeJson_pb = QPushButton("Write Config")
