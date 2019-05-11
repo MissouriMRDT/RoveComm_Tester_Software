@@ -81,6 +81,9 @@ class Reciever(QWidget):
 		
 		self.subsciber = Subscriber()
 		
+		self.filter_txt = QLabel('Filter:')
+		self.filter = QLineEdit()
+		
 		self.logData_cb = QCheckBox("Log Data")
 		self.logData_cb.stateChanged.connect(self.logData)
 		
@@ -100,10 +103,17 @@ class Reciever(QWidget):
 		self.cbSplitter.addWidget(self.logData_cb)
 		self.cbSplitter.addWidget(self.autoScroll_cb)
 		
+		self.filtersplitter = QSplitter(Qt.Horizontal)
+		self.filtersplitter.addWidget(self.filter_txt)
+		self.filtersplitter.addWidget(self.filter)
+		
+		self.controlsSplitter = QSplitter(Qt.Horizontal)
+		self.controlsSplitter.addWidget(self.cbSplitter)
+		self.controlsSplitter.addWidget(self.filtersplitter)
 		
 		self.splitter1 = QSplitter(Qt.Vertical)
 		self.splitter1.addWidget(self.subsciber)
-		self.splitter1.addWidget(self.cbSplitter)
+		self.splitter1.addWidget(self.controlsSplitter)
 		
 		self.splitter = QSplitter(Qt.Vertical)
 		self.splitter.addWidget(self.splitter1)
@@ -123,34 +133,36 @@ class Reciever(QWidget):
 	def read(self):
 		packet = RoveComm.read()
 		if(packet.data_id !=0):
-			retrieved_time = datetime.datetime.now()
-			elapsed_time = (retrieved_time-self.start_time).total_seconds()
-			
-			self.recieveTable.setRowCount(self.rows+1)
-			
-			item = QTableWidgetItem(str(retrieved_time))
-			self.recieveTable.setItem(self.rows, 0, item)
-			self.recieveTable.setItem(self.rows, 1, QTableWidgetItem(str(elapsed_time)))
-			self.recieveTable.setItem(self.rows, 2, QTableWidgetItem(str(packet.data_id)))
-			self.recieveTable.setItem(self.rows, 3, QTableWidgetItem(str(packet.data_type)))
-			self.recieveTable.setItem(self.rows, 4, QTableWidgetItem(str(packet.data_count)))
-			self.recieveTable.setItem(self.rows, 5, QTableWidgetItem(str(packet.ip_address)))
-			self.recieveTable.setItem(self.rows, 6, QTableWidgetItem(str(packet.data)))
-			self.recieveTable.resizeColumnsToContents()
-			
-			if(self.autoScroll_cb.isChecked()):
-				self.recieveTable.scrollToItem(item)
-			
-			self.rows = self.rows+1
-			
-			if(self.logData_cb.isChecked()):
-				self.file.write(str(retrieved_time)+','
-								+str(elapsed_time)+','
-								+str(packet.data_id)+','
-								+str(packet.data_type)+','
-								+str(packet.data_count)+','
-								+str(packet.ip_address)+','
-								+str(packet.data)+'\n')
+			print(self.filter.text)
+			if(self.filter.text() == "" or int(self.filter.text()) == packet.data_id):
+				retrieved_time = datetime.datetime.now()
+				elapsed_time = (retrieved_time-self.start_time).total_seconds()
+				
+				self.recieveTable.setRowCount(self.rows+1)
+				
+				item = QTableWidgetItem(str(retrieved_time))
+				self.recieveTable.setItem(self.rows, 0, item)
+				self.recieveTable.setItem(self.rows, 1, QTableWidgetItem(str(elapsed_time)))
+				self.recieveTable.setItem(self.rows, 2, QTableWidgetItem(str(packet.data_id)))
+				self.recieveTable.setItem(self.rows, 3, QTableWidgetItem(str(packet.data_type)))
+				self.recieveTable.setItem(self.rows, 4, QTableWidgetItem(str(packet.data_count)))
+				self.recieveTable.setItem(self.rows, 5, QTableWidgetItem(str(packet.ip_address)))
+				self.recieveTable.setItem(self.rows, 6, QTableWidgetItem(str(packet.data)))
+				self.recieveTable.resizeColumnsToContents()
+				
+				if(self.autoScroll_cb.isChecked()):
+					self.recieveTable.scrollToItem(item)
+				
+				self.rows = self.rows+1
+				
+				if(self.logData_cb.isChecked()):
+					self.file.write(str(retrieved_time)+','
+									+str(elapsed_time)+','
+									+str(packet.data_id)+','
+									+str(packet.data_type)+','
+									+str(packet.data_count)+','
+									+str(packet.ip_address)+','
+									+str(packet.data)+'\n')
 		
 		if(self.do_thread):
 			threading.Timer(.1, self.read).start()
