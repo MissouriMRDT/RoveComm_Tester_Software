@@ -66,7 +66,7 @@ class RoveCommEthernetUdp:
 	
 	def write(self, packet):
 		try:
-			#packet.print()
+			#dpacket.print()
 			if not isinstance(packet.data, tuple):
 				raise ValueError('Must pass data as a list, Data: ' + str(data))
 

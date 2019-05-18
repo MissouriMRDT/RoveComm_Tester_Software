@@ -28,6 +28,8 @@ last_time = datetime.datetime.now()
 
 file.write("Elapsed Time,Delta,Longitude,Latitude\n")
 
+print("starting read");
+
 while(1):
 	packet = RoveComm.read()
 	if(packet.data_id == int(data_id)):
