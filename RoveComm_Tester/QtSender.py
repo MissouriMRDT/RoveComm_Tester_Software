@@ -1,4 +1,9 @@
 
+from PyQt5.QtCore import Qt, QTimer
+from PyQt5.QtWidgets import QWidget, QAction, QVBoxLayout, QLabel, QLineEdit, QComboBox, QSplitter, QPushButton, QGridLayout
+
+from RoveComm_Python import RoveCommPacket
+
 
 controls = ("Line Entry", "Left Thumb X", "Left Thumb Y", "Right Thumb X", "Right Thumb Y", "D Pad X", "D Pad Y",
             "L Trigger", "R Trigger", "L Bumper", "R Bumper", "A", "B", "X", "Y", "Back", "Start", "L Thumb", "R Thumb")
@@ -15,12 +20,13 @@ data_types = {
 
 class Sender(QWidget):
 
-    def __init__(self):
+    def __init__(self, qApp, rovecomm):
         super().__init__()
 
-        self.initUI()
+        self.rovecomm = rovecomm
+        self.initUI(qApp)
 
-    def initUI(self):
+    def initUI(self, qApp):
         exitAct = QAction('&Exit', self)
         exitAct.setShortcut('Ctrl+Q')
         exitAct.setStatusTip('Exit application')
@@ -41,14 +47,14 @@ class Sender(QWidget):
         self.splitter.addWidget(self.loadJson_pb)
         self.splitter.addWidget(self.writeJson_pb)
 
-        self.send_widgets = [sendWidget(self, 1)]
+        self.send_widgets = [sendWidget(self.rovecomm, self, 1)]
 
         self.main_layout = QVBoxLayout(self)
         self.main_layout.addWidget(self.splitter)
         self.main_layout.addWidget(self.send_widgets[0])
 
         self.setWindowTitle('Sender')
-        #self.setWindowIcon(QIcon(':/Rover.png'))
+        # self.setWindowIcon(QIcon(':/Rover.png'))
 
         self.resize(self.sizeHint())
 
@@ -67,7 +73,7 @@ class Sender(QWidget):
     def addEvent(self, number):
         sender = self.sender()
         self.send_widgets = self.send_widgets[:number] + [sendWidget(
-            self, len(self.send_widgets))] + self.send_widgets[number:]
+            self.rovecomm, self, len(self.send_widgets))] + self.send_widgets[number:]
         self.redrawWidgets()
 
     def removeEvent(self, number):
@@ -156,10 +162,11 @@ class Sender(QWidget):
 
 
 class sendWidget(QWidget):
-    def __init__(self, parent=None, number=1):
+    def __init__(self, rovecomm, parent=None, number=1):
         QWidget.__init__(self, parent=parent)
 
         super(sendWidget, self).__init__(parent)
+        self.rovecomm = rovecomm
         self.initUI(parent, number)
 
     def initUI(self, parent, number):
@@ -253,7 +260,7 @@ class sendWidget(QWidget):
 
             packet = RoveCommPacket(int(self.data_id_le.text(
             )), data_types[self.data_type_cb.currentText()], data, self.ip_octet_4_le.text())
-            RoveComm.write(packet)
+            self.rovecomm.write(packet)
             self.send.setStyleSheet('background-color: lime')
         except:
             self.send.setStyleSheet('background-color: red')

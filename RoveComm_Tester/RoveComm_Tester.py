@@ -24,7 +24,7 @@ from PyQt5.QtWidgets import QApplication
 from RoveComm_Python import RoveCommPacket, RoveCommEthernetUdp
 
 from QtReciever import Reciever
-#from QtSender import Sender
+from QtSender import Sender
 
 
 rovecomm = RoveCommEthernetUdp()
@@ -46,7 +46,7 @@ if __name__ == '__main__':
 
     ex = Reciever(app, rovecomm)
     ex.show()
-    #ex2 = Sender()
-    #ex2.show()
+    ex2 = Sender(app, rovecomm)
+    ex2.show()
 
     sys.exit(app.exec())
