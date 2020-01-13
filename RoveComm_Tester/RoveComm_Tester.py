@@ -8,7 +8,7 @@ import struct
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
-from RoveComm_Python import *
+from RoveComm_Python import RoveCommPacket, RoveCommEthernetUdp
 import json
 import images_qr
 
@@ -38,9 +38,6 @@ try:
 	os.mkdir('1-Configs')
 except:
 	pass
-	
-def controlCallBack(xboxControlId, value):
-	print("Control Id = {}, Value = {}".format(xboxControlId, value))
 	
 controls = ( "Line Entry"
 			,"Left Thumb X"
