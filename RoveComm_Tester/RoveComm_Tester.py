@@ -20,14 +20,14 @@ from XboxController import *
 
 RoveComm = RoveCommEthernetUdp()
 
-types_text_to_byte  = {
-						'Int8':'b',
-						'uInt8':'B',
-						'Int16':'h',
-						'uInt16':'H',
-						'Int32':'l',
-						'uInt32':'L',
-					  }
+data_types = {
+	'Int8':'b',
+	'uInt8':'B',
+	'Int16':'h',
+	'uInt16':'H',
+	'Int32':'l',
+	'uInt32':'L'
+	}
 					  
 try:
 	os.mkdir('0-CSV Outputs')
@@ -208,16 +208,7 @@ class Subscriber(QWidget):
 	def subscribeEvent(self):
 		packet = RoveCommPacket(ROVECOMM_SUBSCRIBE_REQUEST, 'b', (), self.subscribe_octet_4.text())
 		RoveComm.write(packet)
-		
-		
-		types_text_to_byte  = {
-						'Int8':'b',
-						'uInt8':'B',
-						'Int16':'h',
-						'uInt16':'H',
-						'Int32':'l',
-						'uInt32':'L',
-					  }
+
 
 class Sender(QWidget):
 	
@@ -392,13 +383,9 @@ class sendWidget(QWidget):
 		self.data_length_le.textChanged[str].connect(self.data_length_entry)
 		self.data_length = 1
 		
-		self.data_type_cb   = QComboBox(self)
-		self.data_type_cb.addItem("Int8")
-		self.data_type_cb.addItem("uInt8")
-		self.data_type_cb.addItem("Int16")
-		self.data_type_cb.addItem("uInt16")
-		self.data_type_cb.addItem("Int32")
-		self.data_type_cb.addItem("uInt32")
+		self.data_type_cb = QComboBox(self)
+		for entry in data_types:
+			self.data_type_cb.addItem(entry)
 		
 		self.data_array      = [QLineEdit(self)]
 		self.input_cb_array  = [QComboBox(self)]
@@ -443,7 +430,7 @@ class sendWidget(QWidget):
 			for i in range(0, self.data_length):
 				data = (data) + (int(self.data_array[i].text()),)
 			
-			packet = RoveCommPacket(int(self.data_id_le.text()), types_text_to_byte[self.data_type_cb.currentText()], data, self.ip_octet_4_le.text())
+			packet = RoveCommPacket(int(self.data_id_le.text()), data_types[self.data_type_cb.currentText()], data, self.ip_octet_4_le.text())
 			RoveComm.write(packet)	
 			self.send.setStyleSheet('background-color: lime')
 		except:
