@@ -3,22 +3,31 @@ pyinstaller --windowed --onedir --icon=rover_1wP_icon.ico RoveComm_Tester.py
 '''
 
 
-import sys
-import struct
-from PyQt5.QtCore import *
-from PyQt5.QtWidgets import *
-from PyQt5.QtGui import *
-from RoveComm_Python import RoveCommPacket, RoveCommEthernetUdp
-import json
-import images_qr
+#import struct
+#from PyQt5.QtCore import *
+#from PyQt5.QtWidgets import *
+#from PyQt5.QtGui import *
+#import json
+#import images_qr
 
-import threading
-import datetime
-import time
+#import threading
+#import datetime
+#import time
+#from XboxController import *
+
+
 import os
-from XboxController import *
+import sys
 
-RoveComm = RoveCommEthernetUdp()
+from PyQt5.QtWidgets import QApplication
+
+from RoveComm_Python import RoveCommPacket, RoveCommEthernetUdp
+
+from QtReciever import Reciever
+#from QtSender import Sender
+
+
+rovecomm = RoveCommEthernetUdp()
 
 try:
     os.mkdir('0-CSV Outputs')
@@ -35,9 +44,9 @@ if __name__ == '__main__':
 
     app = QApplication(sys.argv)
 
-    ex = Reciever()
+    ex = Reciever(app, rovecomm)
     ex.show()
-    ex2 = Sender()
-    ex2.show()
+    #ex2 = Sender()
+    #ex2.show()
 
     sys.exit(app.exec())

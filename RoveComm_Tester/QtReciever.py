@@ -1,14 +1,23 @@
 
+import datetime
+import threading
+
+from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QWidget, QAction, QHBoxLayout, QLabel, QLineEdit, QCheckBox, QTableWidget, QSplitter, QPushButton, QGridLayout, QTableWidgetItem
+
+from RoveComm_Python import RoveCommPacket, ROVECOMM_SUBSCRIBE_REQUEST
+
 
 class Reciever(QWidget):
 
-    def __init__(self):
+    def __init__(self, qApp, rovecomm):
         super().__init__()
 
-        self.initUI()
+        self.rovecomm = rovecomm
+        self.initUI(qApp)
 
-    def initUI(self):
-        exitAct = QAction(QIcon('exit.png'), '&Exit', self)
+    def initUI(self, qApp):
+        exitAct = QAction('&Exit', self)
         exitAct.setShortcut('Ctrl+Q')
         exitAct.setStatusTip('Exit application')
         exitAct.triggered.connect(qApp.quit)
@@ -17,7 +26,7 @@ class Reciever(QWidget):
 
         self.do_thread = True
 
-        self.subsciber = Subscriber()
+        self.subsciber = Subscriber(self.rovecomm)
 
         self.filter_txt = QLabel('Filter:')
         self.filter = QLineEdit()
@@ -61,7 +70,7 @@ class Reciever(QWidget):
         self.setLayout(hbox)
 
         self.setWindowTitle('Reciever')
-        self.setWindowIcon(QIcon(':/Rover.png'))
+        # self.setWindowIcon(QIcon(':/Rover.png'))
         self.resize(900, 500)
 
         self.show()
@@ -69,7 +78,7 @@ class Reciever(QWidget):
         self.read()
 
     def read(self):
-        packet = RoveComm.read()
+        packet = self.rovecomm.read()
         if(packet.data_id != 0):
             print(self.filter.text)
             if(self.filter.text() == "" or int(self.filter.text()) == packet.data_id):
@@ -131,3 +140,30 @@ class Reciever(QWidget):
             self.file.close()
         except:
             pass
+
+
+class Subscriber(QWidget):
+    def __init__(self, rovecomm):
+        super().__init__()
+        self.initUI()
+        self.rovecomm = rovecomm
+
+    def initUI(self):
+        self.subscribe_txt = QLabel('Subscribe To Octet 4:')
+
+        self.subscribe_octet_4 = QLineEdit()
+
+        self.subscribe_pb = QPushButton('Subscribe', self)
+        self.subscribe_pb.clicked.connect(self.subscribeEvent)
+
+        self.main_layout = QGridLayout(self)
+        self.main_layout.addWidget(self.subscribe_txt, 0, 0)
+        self.main_layout.addWidget(self.subscribe_octet_4, 0, 1)
+        self.main_layout.addWidget(self.subscribe_pb, 0, 2)
+
+        self.show()
+
+    def subscribeEvent(self):
+        packet = RoveCommPacket(
+            ROVECOMM_SUBSCRIBE_REQUEST, 'b', (), self.subscribe_octet_4.text())
+        self.rovecomm.write(packet)

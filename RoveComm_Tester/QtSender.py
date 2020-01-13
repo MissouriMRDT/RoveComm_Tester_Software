@@ -21,7 +21,7 @@ class Sender(QWidget):
         self.initUI()
 
     def initUI(self):
-        exitAct = QAction(QIcon('exit.png'), '&Exit', self)
+        exitAct = QAction('&Exit', self)
         exitAct.setShortcut('Ctrl+Q')
         exitAct.setStatusTip('Exit application')
         exitAct.triggered.connect(qApp.quit)
@@ -48,7 +48,7 @@ class Sender(QWidget):
         self.main_layout.addWidget(self.send_widgets[0])
 
         self.setWindowTitle('Sender')
-        self.setWindowIcon(QIcon(':/Rover.png'))
+        #self.setWindowIcon(QIcon(':/Rover.png'))
 
         self.resize(self.sizeHint())
 
@@ -409,29 +409,3 @@ class sendWidget(QWidget):
     def keyPressEvent(self, e):
         if e.key() == Qt.Key_Return:
             self.sendEvent()
-
-
-class Subscriber(QWidget):
-    def __init__(self):
-        super().__init__()
-        self.initUI()
-
-    def initUI(self):
-        self.subscribe_txt = QLabel('Subscribe To Octet 4:')
-
-        self.subscribe_octet_4 = QLineEdit()
-
-        self.subscribe_pb = QPushButton('Subscribe', self)
-        self.subscribe_pb.clicked.connect(self.subscribeEvent)
-
-        self.main_layout = QGridLayout(self)
-        self.main_layout.addWidget(self.subscribe_txt, 0, 0)
-        self.main_layout.addWidget(self.subscribe_octet_4, 0, 1)
-        self.main_layout.addWidget(self.subscribe_pb, 0, 2)
-
-        self.show()
-
-    def subscribeEvent(self):
-        packet = RoveCommPacket(
-            ROVECOMM_SUBSCRIBE_REQUEST, 'b', (), self.subscribe_octet_4.text())
-        RoveComm.write(packet)
