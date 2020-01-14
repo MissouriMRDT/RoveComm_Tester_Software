@@ -36,20 +36,20 @@ class Reciever(QWidget):
 
         # Checkbox to control logging data to local csv file
         self.logData_cb = QCheckBox("Log Data")
-        self.logData_cb.stateChanged.connect(self.logData)
+        self.logData_cb.stateChanged.connect(self.logFileHandler)
+        self.start_time = datetime.datetime.now()
 
         # Control for table scrolling
         self.autoScroll_cb = QCheckBox("Auto Scroll")
         self.autoScroll_cb.setChecked(True)
 
-        self.start_time = datetime.datetime.now()
 
-        self.rows = 0
+        self.row_count = 0
 
         # Table for incoming packets, column definitions
         self.recieveTable = QTableWidget()
         self.recieveTable.setColumnCount(7)
-        self.recieveTable.setRowCount(self.rows)
+        self.recieveTable.setRowCount(self.row_count)
         self.recieveTable.setHorizontalHeaderLabels(
             ["Timestamp", "Delta T", "Data Id", "Data Type", "Data Count", "IP Address", "Data"])
 
@@ -75,62 +75,91 @@ class Reciever(QWidget):
 
         self.read()
 
+
+    # Loop for recieving packets
     def read(self):
+
+        # Thread here holds until packet arrives
         packet = self.rovecomm.read()
+
         if(packet.data_id != 0):
-            print(self.filter.text)
-            if(self.filter.text() == "" or int(self.filter.text()) == packet.data_id):
+            if(self.passesFilter(packet)):
                 retrieved_time = datetime.datetime.now()
                 elapsed_time = (retrieved_time-self.start_time).total_seconds()
 
-                self.recieveTable.setRowCount(self.rows+1)
-
-                item = QTableWidgetItem(str(retrieved_time))
-                self.recieveTable.setItem(self.rows, 0, item)
-                self.recieveTable.setItem(
-                    self.rows, 1, QTableWidgetItem(str(elapsed_time)))
-                self.recieveTable.setItem(
-                    self.rows, 2, QTableWidgetItem(str(packet.data_id)))
-                self.recieveTable.setItem(
-                    self.rows, 3, QTableWidgetItem(str(packet.data_type)))
-                self.recieveTable.setItem(
-                    self.rows, 4, QTableWidgetItem(str(packet.data_count)))
-                self.recieveTable.setItem(
-                    self.rows, 5, QTableWidgetItem(str(packet.ip_address)))
-                self.recieveTable.setItem(
-                    self.rows, 6, QTableWidgetItem(str(packet.data)))
-                self.recieveTable.resizeColumnsToContents()
-
-                if(self.autoScroll_cb.isChecked()):
-                    self.recieveTable.scrollToItem(item)
-
-                self.rows = self.rows+1
+                self.addDataRow(packet, retrieved_time, elapsed_time)
 
                 if(self.logData_cb.isChecked()):
-                    self.file.write(str(retrieved_time)+','
-                                    + str(elapsed_time)+','
-                                    + str(packet.data_id)+','
-                                    + str(packet.data_type)+','
-                                    + str(packet.data_count)+','
-                                    + str(packet.ip_address)+','
-                                    + str(packet.data)+'\n')
+                    self.logData(packet, retrieved_time, elapsed_time)
 
+        # Call this method repeatedly
         if(self.do_thread):
-            threading.Timer(.1, self.read).start()
+            threading.Timer(.01, self.read).start()
 
-    def logData(self):
+
+    # Insert new data into display table
+    def addDataRow(self, packet, retrieved_time, elapsed_time):
+        self.recieveTable.setRowCount(self.row_count+1)
+
+        self.recieveTable.setItem(
+            self.row_count, 0, QTableWidgetItem(str(retrieved_time)))
+        self.recieveTable.setItem(
+            self.row_count, 1, QTableWidgetItem(str(elapsed_time)))
+        self.recieveTable.setItem(
+            self.row_count, 2, QTableWidgetItem(str(packet.data_id)))
+        self.recieveTable.setItem(
+            self.row_count, 3, QTableWidgetItem(str(packet.data_type)))
+        self.recieveTable.setItem(
+            self.row_count, 4, QTableWidgetItem(str(packet.data_count)))
+        self.recieveTable.setItem(
+            self.row_count, 5, QTableWidgetItem(str(packet.ip_address)))
+        self.recieveTable.setItem(
+            self.row_count, 6, QTableWidgetItem(str(packet.data)))
+        self.recieveTable.resizeColumnsToContents()
+
+        if(self.autoScroll_cb.isChecked()):
+                    self.recieveTable.scrollToItem(
+                        self.recieveTable.itemAt(self.row_count, 0))
+
+        self.row_count = self.row_count+1
+
+
+    # Handler for the logging checkbox
+    def logFileHandler(self):
         if(self.logData_cb.isChecked()):
             self.start_time = datetime.datetime.now()
             self.file = open(
-                '0-CSV Outputs/'+str(self.start_time).replace(':', '_')+'.txt', 'w')
+                '0-CSV Outputs/'+str(self.start_time).replace(':', '_')+'.csv', 'w')
             self.file.write(
                 'Time, Delta, Data Id, Data Type, Data Count, Ip Address, Data\n')
         else:
             self.file.close()
 
+
+    # Log a packet to the open file
+    def logData(self, packet, retrieved_time, elapsed_time):
+        self.file.write(str(retrieved_time)+','
+                        + str(elapsed_time)+','
+                        + str(packet.data_id)+','
+                        + str(packet.data_type)+','
+                        + str(packet.data_count)+','
+                        + str(packet.ip_address)+','
+                        + str(packet.data)+'\n')
+
+
+    # Test to determine if packet qualifies under the text filter
+    def passesFilter(self, packet):
+        return (self.filter.text() == "" or
+                int(self.filter.text()) == packet.data_id or
+                self.filter.text() == packet.data_type or
+                self.filter.text() in str(packet.ip_address[0]) or
+                self.filter.text() in str(packet.data))
+
+
     def keyPressEvent(self, e):
         if e.key() == Qt.Key_Escape:
             self.close()
+
 
     def closeEvent(self, event):
         self.do_thread = False
@@ -140,28 +169,25 @@ class Reciever(QWidget):
             pass
 
 
+# Defines subscriber control widget
 class Subscriber(QWidget):
     def __init__(self, rovecomm):
         super().__init__()
-        self.initUI()
         self.rovecomm = rovecomm
 
-    def initUI(self):
-        self.subscribe_txt = QLabel('Subscribe To Octet 4:')
-
-        self.subscribe_octet_4 = QLineEdit()
+        self.octet_input = QLineEdit()
 
         self.subscribe_pb = QPushButton('Subscribe', self)
         self.subscribe_pb.clicked.connect(self.subscribeEvent)
 
-        self.main_layout = QGridLayout(self)
-        self.main_layout.addWidget(self.subscribe_txt, 0, 0)
-        self.main_layout.addWidget(self.subscribe_octet_4, 0, 1)
-        self.main_layout.addWidget(self.subscribe_pb, 0, 2)
+        self.main_layout = QHBoxLayout(self)
+        self.main_layout.addWidget(QLabel('Subscribe To Octet 4:'))
+        self.main_layout.addWidget(self.octet_input)
+        self.main_layout.addWidget(self.subscribe_pb)
 
         self.show()
 
     def subscribeEvent(self):
         packet = RoveCommPacket(
-            ROVECOMM_SUBSCRIBE_REQUEST, 'b', (), self.subscribe_octet_4.text())
+            ROVECOMM_SUBSCRIBE_REQUEST, 'b', (), self.octet_input.text())
         self.rovecomm.write(packet)
