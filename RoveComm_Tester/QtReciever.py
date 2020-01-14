@@ -3,72 +3,70 @@ import datetime
 import threading
 
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QWidget, QAction, QHBoxLayout, QLabel, QLineEdit, QCheckBox, QTableWidget, QSplitter, QPushButton, QGridLayout, QTableWidgetItem
+from PyQt5.QtWidgets import QWidget, QAction, QHBoxLayout, QVBoxLayout, QLabel, QLineEdit, QCheckBox, QTableWidget, QSplitter, QPushButton, QGridLayout, QTableWidgetItem
 
 from RoveComm_Python import RoveCommPacket, ROVECOMM_SUBSCRIBE_REQUEST
 
 
+# Class for window that allows a user to:
+# -Subscribe to devices on a network
+# -Read packets that those devices send
 class Reciever(QWidget):
 
     def __init__(self, qApp, rovecomm):
         super().__init__()
 
+        # Instance from main that instantiated this
         self.rovecomm = rovecomm
-        self.initUI(qApp)
 
-    def initUI(self, qApp):
         exitAct = QAction('&Exit', self)
         exitAct.setShortcut('Ctrl+Q')
         exitAct.setStatusTip('Exit application')
         exitAct.triggered.connect(qApp.quit)
 
-        hbox = QHBoxLayout(self)
-
+        # Thread control boolean, for when closing
         self.do_thread = True
 
-        self.subsciber = Subscriber(self.rovecomm)
+        # Subsciber gui instance
+        self.subsciber_gui = Subscriber(self.rovecomm)
 
+        # Packet contents filter
         self.filter_txt = QLabel('Filter:')
         self.filter = QLineEdit()
 
+        # Checkbox to control logging data to local csv file
         self.logData_cb = QCheckBox("Log Data")
         self.logData_cb.stateChanged.connect(self.logData)
 
+        # Control for table scrolling
         self.autoScroll_cb = QCheckBox("Auto Scroll")
         self.autoScroll_cb.setChecked(True)
+
         self.start_time = datetime.datetime.now()
 
         self.rows = 0
 
+        # Table for incoming packets, column definitions
         self.recieveTable = QTableWidget()
         self.recieveTable.setColumnCount(7)
         self.recieveTable.setRowCount(self.rows)
         self.recieveTable.setHorizontalHeaderLabels(
             ["Timestamp", "Delta T", "Data Id", "Data Type", "Data Count", "IP Address", "Data"])
 
-        self.cbSplitter = QSplitter(Qt.Horizontal)
-        self.cbSplitter.addWidget(self.logData_cb)
-        self.cbSplitter.addWidget(self.autoScroll_cb)
+        # Log data, auto scroll, and filter controls row layout definition
+        self.controls_hbox = QHBoxLayout(self)
+        self.controls_hbox.addWidget(self.logData_cb)
+        self.controls_hbox.addWidget(self.autoScroll_cb)
+        self.controls_hbox.addWidget(self.filter_txt)
+        self.controls_hbox.addWidget(self.filter)
 
-        self.filtersplitter = QSplitter(Qt.Horizontal)
-        self.filtersplitter.addWidget(self.filter_txt)
-        self.filtersplitter.addWidget(self.filter)
+        # Adding elements to main layout
+        layout_vbox = QVBoxLayout(self)
+        layout_vbox.addLayout(self.controls_hbox)
+        layout_vbox.addWidget(self.subsciber_gui)
+        layout_vbox.addWidget(self.recieveTable)
 
-        self.controlsSplitter = QSplitter(Qt.Horizontal)
-        self.controlsSplitter.addWidget(self.cbSplitter)
-        self.controlsSplitter.addWidget(self.filtersplitter)
-
-        self.splitter1 = QSplitter(Qt.Vertical)
-        self.splitter1.addWidget(self.subsciber)
-        self.splitter1.addWidget(self.controlsSplitter)
-
-        self.splitter = QSplitter(Qt.Vertical)
-        self.splitter.addWidget(self.splitter1)
-        self.splitter.addWidget(self.recieveTable)
-
-        hbox.addWidget(self.splitter)
-        self.setLayout(hbox)
-
+        self.setLayout(layout_vbox)
         self.setWindowTitle('Reciever')
         # self.setWindowIcon(QIcon(':/Rover.png'))
         self.resize(900, 500)
