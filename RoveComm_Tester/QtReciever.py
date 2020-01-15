@@ -54,7 +54,7 @@ class Reciever(QWidget):
             ["Timestamp", "Delta T", "Data Id", "Data Type", "Data Count", "IP Address", "Data"])
 
         # Log data, auto scroll, and filter controls row layout definition
-        self.controls_hbox = QHBoxLayout(self)
+        self.controls_hbox = QHBoxLayout()
         self.controls_hbox.addWidget(self.logData_cb)
         self.controls_hbox.addWidget(self.autoScroll_cb)
         self.controls_hbox.addWidget(self.filter_txt)
@@ -62,8 +62,8 @@ class Reciever(QWidget):
 
         # Adding elements to main layout
         layout_vbox = QVBoxLayout(self)
-        layout_vbox.addLayout(self.controls_hbox)
         layout_vbox.addWidget(self.subsciber_gui)
+        layout_vbox.addLayout(self.controls_hbox)
         layout_vbox.addWidget(self.recieveTable)
 
         self.setLayout(layout_vbox)
