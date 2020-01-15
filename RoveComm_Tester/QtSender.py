@@ -1,6 +1,6 @@
 
 from PyQt5.QtCore import Qt, QTimer
-from PyQt5.QtWidgets import QWidget, QAction, QVBoxLayout, QLabel, QLineEdit, QComboBox, QSplitter, QPushButton, QGridLayout
+from PyQt5.QtWidgets import QWidget, QAction, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QComboBox, QSplitter, QPushButton, QGridLayout
 
 from RoveComm_Python import RoveCommPacket
 
@@ -33,6 +33,10 @@ class Sender(QWidget):
         exitAct.setStatusTip('Exit application')
         exitAct.triggered.connect(qApp.quit)
 
+        # Add send row button and handler
+        self.add_pb = QPushButton("Add Send Row")
+        self.add_pb.clicked.connect(self.addEvent)
+
         # Load config button and handler
         self.loadJson_pb = QPushButton("Load Configs")
         self.loadJson_pb.clicked.connect(self.loadJSON)
@@ -42,16 +46,17 @@ class Sender(QWidget):
         self.writeJson_pb.clicked.connect(self.writeJSON)
 
         # Button menu layout
-        self.splitter = QSplitter()
-        self.splitter.addWidget(self.loadJson_pb)
-        self.splitter.addWidget(self.writeJson_pb)
+        self.menu_layout = QHBoxLayout()
+        self.menu_layout.addWidget(self.add_pb)
+        self.menu_layout.addWidget(self.loadJson_pb)
+        self.menu_layout.addWidget(self.writeJson_pb)
 
         # Send widget array definition
         self.send_widgets = [sendWidget(self.rovecomm, self, 1)]
 
         # Primary layout definition
         self.main_layout = QVBoxLayout(self)
-        self.main_layout.addWidget(self.splitter)
+        self.main_layout.addLayout(self.menu_layout)
         self.main_layout.addWidget(self.send_widgets[0])
 
         self.setWindowTitle('Sender')
@@ -208,11 +213,6 @@ class sendWidget(QWidget):
         self.send.resize(self.send.sizeHint())
         self.send.clicked.connect(self.sendEvent)
 
-        # Add button and handler assignment
-        add = QPushButton('Add', self)
-        add.resize(self.send.sizeHint())
-        add.clicked.connect(self.addEvent)
-
         # Remove button and handler assignment
         remove = QPushButton('X', self)
         remove.resize(self.send.sizeHint())
@@ -253,7 +253,6 @@ class sendWidget(QWidget):
         self.main_layout.addWidget(self.ip_octet_4_text, 0, 10)
 
         self.main_layout.addWidget(self.number_txt, 1, 0)
-        self.main_layout.addWidget(add, 1, 1)
         self.main_layout.addWidget(remove, 1, 2)
         self.main_layout.addWidget(self.data_id_le, 1, 3)
         self.main_layout.addWidget(self.data_type_cb, 1, 4)
@@ -284,11 +283,6 @@ class sendWidget(QWidget):
         except:
             self.send.setStyleSheet('background-color: red')
             print("Invalid Packet")
-
-
-    # Handler for adding another sender widget row
-    def addEvent(self, parent):
-        self.parent().addEvent(self.number)
 
 
     # Handler for removing a sender widget row
