@@ -106,7 +106,7 @@ class Sender(QWidget):
                 start_number = len(self.send_widgets)
                 for i in range(0, int(data["packet_count"])):
                     try:
-                        self.addEvent(start_number+i)
+                        self.addEvent()
                         self.send_widgets[start_number +
                                           i].data_id_le.setText(data["packet"][i]["data_id"])
                         self.send_widgets[start_number +
