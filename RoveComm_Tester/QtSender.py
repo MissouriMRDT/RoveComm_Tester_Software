@@ -18,37 +18,38 @@ data_types = {
 }
 
 
+# Class for window that allows a user to:
+# - Send rovecomm packets to network devices
+# - Save and load pre-defined packets
 class Sender(QWidget):
 
     def __init__(self, qApp, rovecomm):
         super().__init__()
 
         self.rovecomm = rovecomm
-        self.initUI(qApp)
 
-    def initUI(self, qApp):
         exitAct = QAction('&Exit', self)
         exitAct.setShortcut('Ctrl+Q')
         exitAct.setStatusTip('Exit application')
         exitAct.triggered.connect(qApp.quit)
 
-        # used with QMainWindow
-        #menubar = self.menuBar()
-        #fileMenu = menubar.addMenu('&File')
-        # fileMenu.addAction(exitAct)
-
+        # Load config button and handler
         self.loadJson_pb = QPushButton("Load Configs")
         self.loadJson_pb.clicked.connect(self.loadJSON)
 
+        # Write config button and handler
         self.writeJson_pb = QPushButton("Write Config")
         self.writeJson_pb.clicked.connect(self.writeJSON)
 
+        # Button menu layout
         self.splitter = QSplitter()
         self.splitter.addWidget(self.loadJson_pb)
         self.splitter.addWidget(self.writeJson_pb)
 
+        # Send widget array definition
         self.send_widgets = [sendWidget(self.rovecomm, self, 1)]
 
+        # Primary layout definition
         self.main_layout = QVBoxLayout(self)
         self.main_layout.addWidget(self.splitter)
         self.main_layout.addWidget(self.send_widgets[0])
@@ -60,24 +61,24 @@ class Sender(QWidget):
 
         self.show()
 
+
+    # Redraw function used after removing/adding send widgets
     def redrawWidgets(self):
         for i in range(0, len(self.send_widgets)):
             self.main_layout.removeWidget(self.send_widgets[i])
             self.main_layout.addWidget(self.send_widgets[i])
             self.send_widgets[i].setNumber(i+1)
 
-    def keyPressEvent(self, e):
-        if e.key() == Qt.Key_Escape:
-            self.close()
-
+    
+    # Handler for adding a send widget
     def addEvent(self, number):
-        sender = self.sender()
         self.send_widgets = self.send_widgets[:number] + [sendWidget(
             self.rovecomm, self, len(self.send_widgets))] + self.send_widgets[number:]
         self.redrawWidgets()
 
+
+    # Handler for removing a send widget
     def removeEvent(self, number):
-        sender = self.sender()
         self.main_layout.removeWidget(self.send_widgets[-1])
         self.send_widgets[number-1].close()
         self.send_widgets[number-1].deleteLater()
@@ -87,6 +88,8 @@ class Sender(QWidget):
 
         self.redrawWidgets()
 
+
+    # Handler for loading in json files from the configs folder
     def loadJSON(self):
         try:
             load_files = QFileDialog.getOpenFileNames(
@@ -122,6 +125,8 @@ class Sender(QWidget):
         except:
             pass
 
+
+    # Event to handle writing a json file into the configs folder
     def writeJSON(self):
         data = {
             "packet_count": len(self.send_widgets)
@@ -156,26 +161,33 @@ class Sender(QWidget):
         except:
             pass
 
+
+    def keyPressEvent(self, e):
+        if e.key() == Qt.Key_Escape:
+            self.close()
+
+
     def closeEvent(self, event):
         for widget in self.send_widgets:
             widget.close()
 
 
+# Class defines a send row for the sender widget
 class sendWidget(QWidget):
     def __init__(self, rovecomm, parent=None, number=1):
         QWidget.__init__(self, parent=parent)
 
         super(sendWidget, self).__init__(parent)
         self.rovecomm = rovecomm
-        self.initUI(parent, number)
 
-    def initUI(self, parent, number):
+        # Defining xbox controller
         try:
             self.xboxCont = XboxController(
                 deadzone=20, scale=100, invertYAxis=True)  # controlCallBack
             self.xboxCont.start()
         except:
             pass
+
         self.updateTimer = QTimer()
         self.updateTimer.timeout.connect(self.sendThread)
 
@@ -191,14 +203,17 @@ class sendWidget(QWidget):
         self.number_txt = QLabel(str(number) + '.', self)
         self.number = number
 
+        # Send button and handler assignment
         self.send = QPushButton('Send', self)
         self.send.resize(self.send.sizeHint())
         self.send.clicked.connect(self.sendEvent)
 
+        # Add button and handler assignment
         add = QPushButton('Add', self)
         add.resize(self.send.sizeHint())
         add.clicked.connect(self.addEvent)
 
+        # Remove button and handler assignment
         remove = QPushButton('X', self)
         remove.resize(self.send.sizeHint())
         remove.clicked.connect(self.removeEvent)
@@ -226,6 +241,7 @@ class sendWidget(QWidget):
 
         self.input_cb_array[0] = self.addControls(self.input_cb_array[0])
 
+        # Layout definition and assignments
         self.main_layout = QGridLayout(self)
         self.main_layout.addWidget(self.data_id_text, 0, 3)
         self.main_layout.addWidget(self.data_type_text, 0, 4)
@@ -248,10 +264,13 @@ class sendWidget(QWidget):
         self.main_layout.addWidget(self.update_ms_le, 1, 9)
         self.main_layout.addWidget(self.ip_octet_4_le, 1, 10)
         self.main_layout.addWidget(self.send, 1, 11)
+
         self.resize(self.sizeHint())
 
         self.show()
 
+
+    # Handler for sending packets
     def sendEvent(self):
         data = ()
         try:
@@ -266,21 +285,31 @@ class sendWidget(QWidget):
             self.send.setStyleSheet('background-color: red')
             print("Invalid Packet")
 
+
+    # Handler for adding another sender widget row
     def addEvent(self, parent):
         self.parent().addEvent(self.number)
 
+
+    # Handler for removing a sender widget row
     def removeEvent(self, parent):
         self.parent().removeEvent(self.number)
 
+
+    # Sets the row number for the sender widget for parent management
     def setNumber(self, number):
         self.number = number
         self.number_txt.setText(str(number) + '.')
 
+
+    # ?
     def addControls(self, ComboBox):
         for i in controls:
             ComboBox.addItem(i)
         return ComboBox
 
+
+    # ?
     def data_length_entry(self):
         sender = self.sender()
         try:
@@ -321,6 +350,8 @@ class sendWidget(QWidget):
         except:
             return
 
+
+    # Xbox values updater
     def updateXboxValues(self):
         for i in range(0, len(self.data_array)):
             text = self.input_cb_array[i].currentText()
@@ -381,6 +412,8 @@ class sendWidget(QWidget):
                 self.data_array[i].setText(
                     str(int(float(self.scalar_array[i].text()) * self.xboxCont.RIGHTTHUMB)))
 
+
+    # ?
     def update_ms_le_textchanged(self):
         try:
             self.update_period_ms = int(self.update_ms_le.text())
@@ -395,6 +428,8 @@ class sendWidget(QWidget):
             #print("Invalid time")
             self.update_period_ms = 0
 
+
+    # ?
     def sendThread(self):
         # print(self.update_period_ms)
         if(self.update_period_ms != 0):
@@ -405,13 +440,15 @@ class sendWidget(QWidget):
 
             self.send.animateClick()
 
-    def close(self):  # On close, stop threading
+
+    def close(self):
         print("Closing")
         try:
             self.xboxCont.stop()
         except:
             pass
         self.updateTimer.stop()
+
 
     def keyPressEvent(self, e):
         if e.key() == Qt.Key_Return:
