@@ -52,7 +52,7 @@ class Sender(QWidget):
         self.menu_layout.addWidget(self.writeJson_pb)
 
         # Send widget array definition
-        self.send_widgets = [sendWidget(self.rovecomm, self, 1)]
+        self.send_widgets = [sendWidget(self.rovecomm, self, 0)]
 
         # Primary layout definition
         self.main_layout = QVBoxLayout(self)
@@ -72,24 +72,25 @@ class Sender(QWidget):
         for i in range(0, len(self.send_widgets)):
             self.main_layout.removeWidget(self.send_widgets[i])
             self.main_layout.addWidget(self.send_widgets[i])
-            self.send_widgets[i].setNumber(i+1)
+            self.send_widgets[i].setRowIndex(i)
 
     
     # Handler for adding a send widget
-    def addEvent(self, number):
-        self.send_widgets = self.send_widgets[:number] + [sendWidget(
-            self.rovecomm, self, len(self.send_widgets))] + self.send_widgets[number:]
+    def addEvent(self):
+        self.send_widgets.append(sendWidget(
+            self.rovecomm, self, len(self.send_widgets)))
         self.redrawWidgets()
 
 
     # Handler for removing a send widget
-    def removeEvent(self, number):
-        self.main_layout.removeWidget(self.send_widgets[-1])
-        self.send_widgets[number-1].close()
-        self.send_widgets[number-1].deleteLater()
-        self.send_widgets[number-1] = None
-        self.send_widgets = self.send_widgets[:number -
-                                              1] + self.send_widgets[number:]
+    def removeEvent(self, row_index):
+        self.main_layout.removeWidget(self.send_widgets[row_index])
+        self.send_widgets[row_index].close()
+        self.send_widgets[row_index].deleteLater()
+        self.send_widgets[row_index] = None
+
+        self.send_widgets = self.send_widgets[:row_index] + \
+            self.send_widgets[row_index + 1:]
 
         self.redrawWidgets()
 
@@ -179,7 +180,7 @@ class Sender(QWidget):
 
 # Class defines a send row for the sender widget
 class sendWidget(QWidget):
-    def __init__(self, rovecomm, parent=None, number=1):
+    def __init__(self, rovecomm, parent=None, row_index=1):
         QWidget.__init__(self, parent=parent)
 
         super(sendWidget, self).__init__(parent)
@@ -205,8 +206,7 @@ class sendWidget(QWidget):
         self.data_update_ms_text = QLabel('Update ms', self)
         self.ip_octet_4_text = QLabel('IP Octet 4', self)
 
-        self.number_txt = QLabel(str(number) + '.', self)
-        self.number = number
+        self.row_index = row_index
 
         # Send button and handler assignment
         self.send = QPushButton('Send', self)
@@ -252,7 +252,6 @@ class sendWidget(QWidget):
         self.main_layout.addWidget(self.data_update_ms_text, 0, 9)
         self.main_layout.addWidget(self.ip_octet_4_text, 0, 10)
 
-        self.main_layout.addWidget(self.number_txt, 1, 0)
         self.main_layout.addWidget(remove, 1, 2)
         self.main_layout.addWidget(self.data_id_le, 1, 3)
         self.main_layout.addWidget(self.data_type_cb, 1, 4)
@@ -287,13 +286,12 @@ class sendWidget(QWidget):
 
     # Handler for removing a sender widget row
     def removeEvent(self, parent):
-        self.parent().removeEvent(self.number)
+        self.parent().removeEvent(self.row_index)
 
 
-    # Sets the row number for the sender widget for parent management
-    def setNumber(self, number):
-        self.number = number
-        self.number_txt.setText(str(number) + '.')
+    # Sets the row index for the sender widget, used in parent
+    def setRowIndex(self, row_index):
+        self.row_index = row_index
 
 
     # ?
