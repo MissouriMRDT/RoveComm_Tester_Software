@@ -197,6 +197,9 @@ class sendWidget(QWidget):
         self.updateTimer = QTimer()
         self.updateTimer.timeout.connect(self.sendThread)
 
+        self.row_index = row_index
+
+        # Row header definitions
         self.data_id_text = QLabel('Data ID', self)
         self.data_type_text = QLabel('Data Type', self)
         self.data_size_text = QLabel('Data Size', self)
@@ -205,8 +208,6 @@ class sendWidget(QWidget):
         self.data_scalar_text = QLabel('Scalar', self)
         self.data_update_ms_text = QLabel('Update ms', self)
         self.ip_octet_4_text = QLabel('IP Octet 4', self)
-
-        self.row_index = row_index
 
         # Send button and handler assignment
         self.send = QPushButton('Send', self)
@@ -218,28 +219,30 @@ class sendWidget(QWidget):
         remove.resize(self.send.sizeHint())
         remove.clicked.connect(self.removeEvent)
 
+        # Inputs for dataID and IP Octet
         self.data_id_le = QLineEdit(self)
-        self.data_length_le = QLineEdit(self)
         self.ip_octet_4_le = QLineEdit(self)
 
-        self.data_length_le.textChanged[str].connect(self.data_length_entry)
-        self.data_length = 1
+        # Arrays of qtWidgets for data pieces of a packet
+        self.data_array = []
+        self.input_cb_array = []
+        self.scalar_array = []
 
+        # Data size input definition and handler
+        self.data_length_le = QLineEdit(self)
+        self.data_length_le.textChanged[str].connect(self.data_length_entry)
+        self.data_length = 0
+
+        # Data type input, populated from list
         self.data_type_cb = QComboBox(self)
         for entry in data_types:
             self.data_type_cb.addItem(entry)
 
-        self.data_array = [QLineEdit(self)]
-        self.input_cb_array = [QComboBox(self)]
-        self.scalar_array = [QLineEdit(self)]
-        self.scalar_array[0].setText("1")
-
+        # Packet rate input
         self.update_ms_le = QLineEdit(self)
         self.update_ms_le.textChanged[str].connect(
             self.update_ms_le_textchanged)
         self.update_period_ms = 0
-
-        self.input_cb_array[0] = self.addControls(self.input_cb_array[0])
 
         # Layout definition and assignments
         self.main_layout = QGridLayout(self)
@@ -256,9 +259,7 @@ class sendWidget(QWidget):
         self.main_layout.addWidget(self.data_id_le, 1, 3)
         self.main_layout.addWidget(self.data_type_cb, 1, 4)
         self.main_layout.addWidget(self.data_length_le, 1, 5)
-        self.main_layout.addWidget(self.data_array[0], 1, 6)
-        self.main_layout.addWidget(self.input_cb_array[0], 1, 7)
-        self.main_layout.addWidget(self.scalar_array[0], 1, 8)
+        # Columns 6, 7 & 8 for dynamic data fields
         self.main_layout.addWidget(self.update_ms_le, 1, 9)
         self.main_layout.addWidget(self.ip_octet_4_le, 1, 10)
         self.main_layout.addWidget(self.send, 1, 11)
@@ -266,6 +267,9 @@ class sendWidget(QWidget):
         self.resize(self.sizeHint())
 
         self.show()
+
+        # Use the callback to populate the data section
+        self.data_length_le.setText("1")
 
 
     # Handler for sending packets
@@ -301,11 +305,15 @@ class sendWidget(QWidget):
         return ComboBox
 
 
-    # ?
+    # Handler for data size input. 
+    # Dynamically generates data array qt elements accordingly
     def data_length_entry(self):
-        sender = self.sender()
         try:
-            new_length = int(sender.text())
+
+            # Attempt int-ifying the text for a size
+            new_length = int(self.data_length_le.text())
+
+            # Add elements as necessary
             if(new_length > self.data_length):
                 for i in range(self.data_length, new_length):
                     self.data_array = self.data_array+[QLineEdit(self)]
@@ -320,6 +328,7 @@ class sendWidget(QWidget):
                     self.scalar_array[i].setText("1")
                     self.main_layout.addWidget(self.scalar_array[i], i+1, 8)
 
+            # Remove elements as necessary
             elif(new_length < self.data_length):
                 for i in range(self.data_length, new_length, -1):
                     self.main_layout.removeWidget(self.data_array[-1])
