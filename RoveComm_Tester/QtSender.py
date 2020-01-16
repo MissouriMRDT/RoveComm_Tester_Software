@@ -220,16 +220,6 @@ class sendWidget(QWidget):
 
         self.row_index = row_index
 
-        # Row header definitions
-        self.data_id_text = QLabel('Data ID', self)
-        self.data_type_text = QLabel('Data Type', self)
-        self.data_size_text = QLabel('Data Size', self)
-        self.data_data_text = QLabel('Data', self)
-        self.data_input_text = QLabel('Input', self)
-        self.data_scalar_text = QLabel('Scalar', self)
-        self.data_update_ms_text = QLabel('Update ms', self)
-        self.ip_octet_4_text = QLabel('IP Octet 4', self)
-
         # Send button and handler assignment
         self.send = QPushButton('Send', self)
         self.send.resize(self.send.sizeHint())
@@ -274,24 +264,25 @@ class sendWidget(QWidget):
 
         # Layout definition and assignments
         self.main_layout = QGridLayout(self)
-        self.main_layout.addWidget(self.data_id_text, 0, 3)
-        self.main_layout.addWidget(self.data_type_text, 0, 4)
-        self.main_layout.addWidget(self.data_size_text, 0, 5)
-        self.main_layout.addWidget(self.data_data_text, 0, 6)
-        self.main_layout.addWidget(self.data_input_text, 0, 7)
-        self.main_layout.addWidget(self.data_scalar_text, 0, 8)
-        self.main_layout.addWidget(self.data_update_ms_text, 0, 9)
-        self.main_layout.addWidget(self.ip_octet_4_text, 0, 10)
 
-        self.main_layout.addWidget(self.send_check, 1, 1)
-        self.main_layout.addWidget(remove, 1, 2)
-        self.main_layout.addWidget(self.data_id_le, 1, 3)
-        self.main_layout.addWidget(self.data_type_cb, 1, 4)
-        self.main_layout.addWidget(self.data_length_le, 1, 5)
-        # Columns 6, 7 & 8 for dynamic data fields
-        self.main_layout.addWidget(self.update_ms_le, 1, 9)
-        self.main_layout.addWidget(self.ip_octet_4_le, 1, 10)
-        self.main_layout.addWidget(self.send, 1, 11)
+        # Row for name headers
+        self.main_layout.addWidget(QLabel('IP Octet 4', self), 0, 1)
+        self.main_layout.addWidget(QLabel('Data ID', self), 0, 2)
+        self.main_layout.addWidget(QLabel('Data Size', self), 0, 4)
+        self.main_layout.addWidget(QLabel('Data', self), 0, 5)
+        self.main_layout.addWidget(QLabel('Input', self), 0, 6)
+        self.main_layout.addWidget(QLabel('Scalar', self), 0, 7)
+        self.main_layout.addWidget(QLabel('Send Rate (ms)', self), 0, 8)
+
+        self.main_layout.addWidget(remove, 1, 0)
+        self.main_layout.addWidget(self.ip_octet_4_le, 1, 1)
+        self.main_layout.addWidget(self.data_id_le, 1, 2)
+        self.main_layout.addWidget(self.data_type_cb, 1, 3)
+        self.main_layout.addWidget(self.data_length_le, 1, 4)
+        # Columns 5, 6 & 7 for dynamic data fields
+        self.main_layout.addWidget(self.update_ms_le, 1, 8)
+        self.main_layout.addWidget(self.send_check, 1, 9)
+        self.main_layout.addWidget(self.send, 1, 10)
 
         self.resize(self.sizeHint())
 
@@ -341,17 +332,17 @@ class sendWidget(QWidget):
             if(new_length > self.data_length):
                 for i in range(self.data_length, new_length):
                     self.data_array = self.data_array+[QLineEdit(self)]
-                    self.main_layout.addWidget(self.data_array[i], i+1, 6)
+                    self.main_layout.addWidget(self.data_array[i], i+1, 5)
 
                     self.input_cb_array = self.input_cb_array+[QComboBox(self)]
-                    self.main_layout.addWidget(self.input_cb_array[i], i+1, 7)
+                    self.main_layout.addWidget(self.input_cb_array[i], i+1, 6)
                     for k in controls:
                         self.input_cb_array[i].addItem(k)
 
                     self.scalar_array = self.scalar_array+[QLineEdit(self)]
                     self.scalar_array[i].textChanged[str].connect(self.update_le_is_float)
                     self.scalar_array[i].setText("1")
-                    self.main_layout.addWidget(self.scalar_array[i], i+1, 8)
+                    self.main_layout.addWidget(self.scalar_array[i], i+1, 7)
 
             # Remove elements as necessary
             elif(new_length < self.data_length):
