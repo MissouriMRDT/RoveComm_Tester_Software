@@ -285,9 +285,9 @@ class sendWidget(QWidget):
             packet = RoveCommPacket(int(self.data_id_le.text(
             )), data_types[self.data_type_cb.currentText()], data, self.ip_octet_4_le.text())
             self.rovecomm.write(packet)
-            self.send.setStyleSheet('background-color: lime')
+            self.update_text_color(True, self.send)
         except:
-            self.send.setStyleSheet('background-color: red')
+            self.update_text_color(False, self.send)
             print("Invalid Packet")
 
 
@@ -299,13 +299,6 @@ class sendWidget(QWidget):
     # Sets the row index for the sender widget, used in parent
     def setRowIndex(self, row_index):
         self.row_index = row_index
-
-
-    # ?
-    def addControls(self, ComboBox):
-        for i in controls:
-            ComboBox.addItem(i)
-        return ComboBox
 
 
     # Handler for data size input. 
@@ -324,8 +317,8 @@ class sendWidget(QWidget):
 
                     self.input_cb_array = self.input_cb_array+[QComboBox(self)]
                     self.main_layout.addWidget(self.input_cb_array[i], i+1, 7)
-                    self.input_cb_array[i] = self.addControls(
-                        self.input_cb_array[i])
+                    for k in controls:
+                        self.input_cb_array[i].addItem(k)
 
                     self.scalar_array = self.scalar_array+[QLineEdit(self)]
                     self.scalar_array[i].textChanged[str].connect(self.update_le_is_float)
@@ -418,7 +411,7 @@ class sendWidget(QWidget):
                     str(int(float(self.scalar_array[i].text()) * self.xboxCont.RIGHTTHUMB)))
 
 
-    # ?
+    # Handler for rate input
     def update_ms_le_textchanged(self):
         try:
             self.update_period_ms = int(self.update_ms_le.text())
@@ -471,9 +464,8 @@ class sendWidget(QWidget):
             element.setStyleSheet('color:red')
 
 
-    # ?
+    # Thread method executed when the update period is valid
     def sendThread(self):
-        # print(self.update_period_ms)
         if(self.update_period_ms != 0):
             try:
                 self.updateXboxValues()
@@ -484,7 +476,6 @@ class sendWidget(QWidget):
 
 
     def close(self):
-        print("Closing")
         try:
             self.xboxCont.stop()
         except:
