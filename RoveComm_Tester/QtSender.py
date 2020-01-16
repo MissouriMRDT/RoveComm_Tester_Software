@@ -221,7 +221,9 @@ class sendWidget(QWidget):
 
         # Inputs for dataID and IP Octet
         self.data_id_le = QLineEdit(self)
+        self.data_id_le.textChanged[str].connect(self.update_le_is_number)
         self.ip_octet_4_le = QLineEdit(self)
+        self.ip_octet_4_le.textChanged[str].connect(self.update_octet_le)
 
         # Arrays of qtWidgets for data pieces of a packet
         self.data_array = []
@@ -230,6 +232,7 @@ class sendWidget(QWidget):
 
         # Data size input definition and handler
         self.data_length_le = QLineEdit(self)
+        self.data_length_le.textChanged[str].connect(self.update_le_is_number)
         self.data_length_le.textChanged[str].connect(self.data_length_entry)
         self.data_length = 0
 
@@ -325,6 +328,7 @@ class sendWidget(QWidget):
                         self.input_cb_array[i])
 
                     self.scalar_array = self.scalar_array+[QLineEdit(self)]
+                    self.scalar_array[i].textChanged[str].connect(self.update_le_is_float)
                     self.scalar_array[i].setText("1")
                     self.main_layout.addWidget(self.scalar_array[i], i+1, 8)
 
@@ -420,14 +424,51 @@ class sendWidget(QWidget):
             self.update_period_ms = int(self.update_ms_le.text())
             if(self.update_period_ms < 100):
                 self.update_period_ms = 0
-                self.update_ms_le.setStyleSheet('color: red')
+                self.update_text_color(False, self.update_ms_le)
                 self.updateTimer.stop()
             else:
-                self.update_ms_le.setStyleSheet('color: black')
+                self.update_text_color(True, self.update_ms_le)
                 self.updateTimer.start(self.update_period_ms)
         except:
-            #print("Invalid time")
             self.update_period_ms = 0
+            self.update_text_color(False, self.update_ms_le)
+
+    
+    # Updates line edit color according to if it contains a number
+    def update_le_is_number(self):
+        try:
+            int(self.sender().text())
+            self.update_text_color(True, self.sender())
+        except:
+            self.update_text_color(False, self.sender())  
+
+
+    # Updates line edit color according to if it contains a float
+    def update_le_is_float(self):
+        try:
+            float(self.sender().text())
+            self.update_text_color(True, self.sender())
+        except:
+            self.update_text_color(False, self.sender())  
+
+
+    # Handler for octet, filter for valid input
+    def update_octet_le(self):
+        try:
+            if int(self.sender().text()) < 256:
+                self.update_text_color(True, self.sender())
+            else:
+                self.update_text_color(False, self.sender())
+        except:
+            self.update_text_color(False, self.sender())
+
+
+    # Updates text color on line edits to notify of bad input
+    def update_text_color(self, status, element):
+        if status:
+            element.setStyleSheet('')
+        else:
+            element.setStyleSheet('color:red')
 
 
     # ?
