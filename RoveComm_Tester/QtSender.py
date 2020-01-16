@@ -1,6 +1,8 @@
 
+import json
+
 from PyQt5.QtCore import Qt, QTimer
-from PyQt5.QtWidgets import QWidget, QAction, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QComboBox, QSplitter, QPushButton, QGridLayout
+from PyQt5.QtWidgets import QWidget, QAction, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QComboBox, QSplitter, QPushButton, QGridLayout, QFileDialog
 
 from RoveComm_Python import RoveCommPacket
 
@@ -98,74 +100,93 @@ class Sender(QWidget):
     # Handler for loading in json files from the configs folder
     def loadJSON(self):
         try:
+
+            # File selection
             load_files = QFileDialog.getOpenFileNames(
                 QFileDialog(), filter="JSON(*.json)", directory="1-Configs/")
+
             print(load_files)
-            for k in range(0, len(load_files)):
+
+            # Loop through files
+            for k in range(0, len(load_files[0])):
                 data = json.loads(open(load_files[0][k]).read())
                 start_number = len(self.send_widgets)
+
+                print("Raw JSON: " + str(data))
+                print("Number of packets: " + str(int(data["packet_count"])))
+
+                # Loop through one file's send rows
                 for i in range(0, int(data["packet_count"])):
                     try:
                         self.addEvent()
-                        self.send_widgets[start_number +
-                                          i].data_id_le.setText(data["packet"][i]["data_id"])
-                        self.send_widgets[start_number +
-                                          i].update_ms_le.setText(data["packet"][i]["update_ms"])
-                        self.send_widgets[start_number+i].ip_octet_4_le.setText(
+                        self.send_widgets[start_number + i].data_id_le.setText(
+                            data["packet"][i]["data_id"])
+                        self.send_widgets[start_number + i].update_ms_le.setText(
+                            data["packet"][i]["update_ms"])
+                        self.send_widgets[start_number + i].ip_octet_4_le.setText(
                             data["packet"][i]["ip_octet_4"])
-                        self.send_widgets[start_number+i].data_type_cb.setCurrentText(
+                        self.send_widgets[start_number + i].data_type_cb.setCurrentText(
                             data["packet"][i]["data_type"])
 
                         data_size = int(data["packet"][i]["data_size"])
-                        self.send_widgets[start_number +
-                                          i].data_length_le.setText(str(data_size))
-                        for j in range(0, data_size):
-                            self.send_widgets[start_number+i].data_array[j].setText(
-                                data["packet"][i]["data"][j]["data"])
-                            self.send_widgets[start_number+i].scalar_array[j].setText(
-                                data["packet"][i]["data"][j]["scalar"])
-                            self.send_widgets[start_number+i].input_cb_array[j].setCurrentText(
-                                data["packet"][i]["data"][j]["input"])
-                    except:
-                        pass
-        except:
-            pass
+                        self.send_widgets[start_number + i].data_length_le.setText(
+                            str(data_size))
 
+                        # Loop through data elements
+                        for j in range(0, data_size):
+                            self.send_widgets[start_number + i].data_array[j].setText(
+                                data["packet"][i]["data"][j]["data"])
+                            self.send_widgets[start_number + i].scalar_array[j].setText(
+                                data["packet"][i]["data"][j]["scalar"])
+                            self.send_widgets[start_number + i].input_cb_array[j].setCurrentText(
+                                data["packet"][i]["data"][j]["input"])
+                    except Exception as ex:
+                        template = "An exception of type {0} occurred. Arguments:\n{1!r}"
+                        message = template.format(type(ex).__name__, ex.args)
+                        print(message)
+        except Exception as ex:
+            template = "An exception of type {0} occurred. Arguments:\n{1!r}"
+            message = template.format(type(ex).__name__, ex.args)
+            print(message)
 
     # Event to handle writing a json file into the configs folder
+
     def writeJSON(self):
         data = {
             "packet_count": len(self.send_widgets)
         }
         data["packet"] = []
 
+        # Loop through each send row
         for i in range(0, len(self.send_widgets)):
             try:
                 data["packet"].append({})
                 data["packet"][i]["data_id"] = self.send_widgets[i].data_id_le.text()
                 data["packet"][i]["data_type"] = self.send_widgets[i].data_type_cb.currentText()
                 data["packet"][i]["data_size"] = self.send_widgets[i].data_length_le.text()
-                data["packet"][i]["update_ms"] = self.send_widgets[i].update_ms_le.text()
+                data["packet"][i]["update_ms"] = self.send_widgets[i].update_period_ms
                 data["packet"][i]["ip_octet_4"] = self.send_widgets[i].ip_octet_4_le.text()
 
+                # Data looping per element
                 data["packet"][i]["data"] = []
                 for j in range(0, int(self.send_widgets[i].data_length_le.text())):
                     data["packet"][i]["data"].append({})
-                    data["packet"][i]["data"][j]["data"] = self.send_widgets[i].data_array[j].text(
-                    )
-                    data["packet"][i]["data"][j]["scalar"] = self.send_widgets[i].scalar_array[j].text(
-                    )
+                    data["packet"][i]["data"][j]["data"] = self.send_widgets[i].data_array[j].text()
+                    data["packet"][i]["data"][j]["scalar"] = self.send_widgets[i].scalar_array[j].text()
                     data["packet"][i]["data"][j]["input"] = self.send_widgets[i].input_cb_array[j].currentText()
 
             except:
+                print("Unknown issue(s) with creating JSON")
                 pass
+
+        # Write the file
         try:
             save_file = QFileDialog.getSaveFileName(
                 QFileDialog(), filter="JSON(*.json)", directory="1-Configs/")
             with open(save_file[0], 'w') as outfile:
                 json.dump(data, outfile)
         except:
-            pass
+            print("Unknown issue with writing & saving JSON")
 
 
     def keyPressEvent(self, e):
