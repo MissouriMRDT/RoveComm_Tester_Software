@@ -51,7 +51,7 @@ class Reciever(QWidget):
         self.recieveTable.setColumnCount(7)
         self.recieveTable.setRowCount(self.row_count)
         self.recieveTable.setHorizontalHeaderLabels(
-            ["Timestamp", "Delta T", "Data Id", "Data Type", "Data Count", "IP Address", "Data"])
+            ["Timestamp", "Delta T", "IP Address", "Data Id", "Data Type", "Data Count", "Data"])
 
         # Log data, auto scroll, and filter controls row layout definition
         self.controls_hbox = QHBoxLayout()
@@ -106,13 +106,13 @@ class Reciever(QWidget):
         self.recieveTable.setItem(
             self.row_count, 1, QTableWidgetItem(str(elapsed_time)))
         self.recieveTable.setItem(
-            self.row_count, 2, QTableWidgetItem(str(packet.data_id)))
+            self.row_count, 2, QTableWidgetItem(str(packet.ip_address)))
         self.recieveTable.setItem(
-            self.row_count, 3, QTableWidgetItem(str(packet.data_type)))
+            self.row_count, 3, QTableWidgetItem(str(packet.data_id)))
         self.recieveTable.setItem(
-            self.row_count, 4, QTableWidgetItem(str(packet.data_count)))
+            self.row_count, 4, QTableWidgetItem(str(packet.data_type)))
         self.recieveTable.setItem(
-            self.row_count, 5, QTableWidgetItem(str(packet.ip_address)))
+            self.row_count, 5, QTableWidgetItem(str(packet.data_count)))
         self.recieveTable.setItem(
             self.row_count, 6, QTableWidgetItem(str(packet.data)))
         self.recieveTable.resizeColumnsToContents()
@@ -131,7 +131,7 @@ class Reciever(QWidget):
             self.file = open(
                 '0-CSV Outputs/'+str(self.start_time).replace(':', '_')+'.csv', 'w')
             self.file.write(
-                'Time, Delta, Data Id, Data Type, Data Count, Ip Address, Data\n')
+                'Time, Delta, IP Address, Data Id, Data Type, Data Count, Data\n')
         else:
             self.file.close()
 
@@ -140,10 +140,10 @@ class Reciever(QWidget):
     def logData(self, packet, retrieved_time, elapsed_time):
         self.file.write(str(retrieved_time)+','
                         + str(elapsed_time)+','
+                        + str(packet.ip_address)+','
                         + str(packet.data_id)+','
                         + str(packet.data_type)+','
                         + str(packet.data_count)+','
-                        + str(packet.ip_address)+','
                         + str(packet.data)+'\n')
 
 
