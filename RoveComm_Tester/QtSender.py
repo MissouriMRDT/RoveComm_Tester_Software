@@ -2,7 +2,7 @@
 import json
 
 from PyQt5.QtCore import Qt, QTimer
-from PyQt5.QtWidgets import QWidget, QAction, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QComboBox, QSplitter, QPushButton, QGridLayout, QFileDialog
+from PyQt5.QtWidgets import QWidget, QAction, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QComboBox, QSplitter, QPushButton, QGridLayout, QFileDialog, QCheckBox
 
 from RoveComm_Python import RoveCommPacket
 
@@ -240,6 +240,10 @@ class sendWidget(QWidget):
         remove.resize(self.send.sizeHint())
         remove.clicked.connect(self.removeEvent)
 
+        # Send enable checkbox
+        self.send_check = QCheckBox("Enable")
+        self.send_check.stateChanged.connect(self.enabled)
+
         # Inputs for dataID and IP Octet
         self.data_id_le = QLineEdit(self)
         self.data_id_le.textChanged[str].connect(self.update_le_is_number)
@@ -279,6 +283,7 @@ class sendWidget(QWidget):
         self.main_layout.addWidget(self.data_update_ms_text, 0, 9)
         self.main_layout.addWidget(self.ip_octet_4_text, 0, 10)
 
+        self.main_layout.addWidget(self.send_check, 1, 1)
         self.main_layout.addWidget(remove, 1, 2)
         self.main_layout.addWidget(self.data_id_le, 1, 3)
         self.main_layout.addWidget(self.data_type_cb, 1, 4)
@@ -292,8 +297,10 @@ class sendWidget(QWidget):
 
         self.show()
 
-        # Use the callback to populate the data section
+        # Use the callbacks to populate the data section and enable state
         self.data_length_le.setText("1")
+        self.send_check.setChecked(True)
+        self.send_check.setChecked(False)
 
 
     # Handler for sending packets
@@ -494,6 +501,11 @@ class sendWidget(QWidget):
                 pass
 
             self.send.animateClick()
+
+
+    # Handler for enable checkbox, sets state of send button
+    def enabled(self, enabled):
+        self.send.setEnabled(enabled)
 
 
     def close(self):
