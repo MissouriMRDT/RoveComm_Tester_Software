@@ -5,6 +5,7 @@ from PyQt5.QtCore import Qt, QTimer
 from PyQt5.QtWidgets import QWidget, QAction, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QComboBox, QSplitter, QPushButton, QGridLayout, QFileDialog, QCheckBox
 
 from RoveComm_Python import RoveCommPacket
+from XboxController import XboxController
 
 
 controls = ("Line Entry", "Left Thumb X", "Left Thumb Y", "Right Thumb X", "Right Thumb Y", "D Pad X", "D Pad Y",
@@ -209,8 +210,7 @@ class sendWidget(QWidget):
 
         # Defining xbox controller
         try:
-            self.xboxCont = XboxController(
-                deadzone=20, scale=100, invertYAxis=True)  # controlCallBack
+            self.xboxCont = XboxController(deadzone=20, scale=100, invertYAxis=True)
             self.xboxCont.start()
         except:
             pass
