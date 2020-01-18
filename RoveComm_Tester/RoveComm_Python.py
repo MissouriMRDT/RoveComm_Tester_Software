@@ -68,7 +68,7 @@ class RoveCommEthernetUdp:
 		try:
 			packet.print()
 			if not isinstance(packet.data, tuple):
-				raise ValueError('Must pass data as a list, Data: ' + str(data))
+				raise ValueError('Must pass data as a list, Data: ' + str(packet.data))
 
 			rovecomm_packet = struct.pack(ROVECOMM_HEADER_FORMAT, ROVECOMM_VERSION, packet.data_id, packet.data_count,
 										  types_byte_to_int[packet.data_type])
@@ -78,9 +78,10 @@ class RoveCommEthernetUdp:
 			for subscriber in self.subscribers:
 					self.RoveCommSocket.sendto(rovecomm_packet, (subscriber))
 			
-			if (packet.ip_address != ('0.0.0.0', 0) and not (packet.ip_address in subscribers)):
+			if (packet.ip_address != ('0.0.0.0', 0) and not (packet.ip_address in self.subscribers)):
 				self.RoveCommSocket.sendto(rovecomm_packet, packet.ip_address)
-				return 1
+
+			return 1
 		except:
 			return 0
 
