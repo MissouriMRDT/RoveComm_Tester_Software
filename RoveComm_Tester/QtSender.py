@@ -25,10 +25,11 @@ data_types = {
 # - Save and load pre-defined packets
 class Sender(QWidget):
 
-    def __init__(self, qApp, rovecomm):
+    def __init__(self, qApp, rovecommUdp, rovecommTCP):
         super().__init__()
 
-        self.rovecomm = rovecomm
+        self.rovecommUdp = rovecommUdp
+        self.rovecommTCP = rovecommTCP
 
         exitAct = QAction('&Exit', self)
         exitAct.setShortcut('Ctrl+Q')
@@ -54,7 +55,7 @@ class Sender(QWidget):
         self.menu_layout.addWidget(self.writeJson_pb)
 
         # Send widget array definition
-        self.send_widgets = [sendWidget(self.rovecomm, self, 0)]
+        self.send_widgets = [sendWidget(self.rovecommUdp, self.rovecommTCP, self, 0)]
 
         # Primary layout definition
         self.main_layout = QVBoxLayout(self)
@@ -80,7 +81,7 @@ class Sender(QWidget):
     # Handler for adding a send widget
     def addEvent(self):
         self.send_widgets.append(sendWidget(
-            self.rovecomm, self, len(self.send_widgets)))
+            self.rovecommUdp, self.rovecommTCP, self, len(self.send_widgets)))
         self.redrawWidgets()
 
 
@@ -201,11 +202,12 @@ class Sender(QWidget):
 
 # Class defines a send row for the sender widget
 class sendWidget(QWidget):
-    def __init__(self, rovecomm, parent=None, row_index=1):
+    def __init__(self, rovecommUdp, rovecommTCP, parent=None, row_index=1):
         QWidget.__init__(self, parent=parent)
 
         super(sendWidget, self).__init__(parent)
-        self.rovecomm = rovecomm
+        self.rovecommUdp = rovecommUdp
+        self.rovecommTCP = rovecommTCP
 
         # Defining xbox controller
         try:
@@ -303,7 +305,7 @@ class sendWidget(QWidget):
 
             packet = RoveCommPacket(int(self.data_id_le.text(
             )), data_types[self.data_type_cb.currentText()], data, self.ip_octet_4_le.text())
-            self.rovecomm.write(packet)
+            self.rovecommUdp.write(packet)
             self.update_text_color(True, self.send)
         except:
             self.update_text_color(False, self.send)

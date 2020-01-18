@@ -21,13 +21,15 @@ import sys
 
 from PyQt5.QtWidgets import QApplication
 
-from RoveComm_Python import RoveCommPacket, RoveCommEthernetUdp
+from RoveComm_Python import RoveCommPacket, RoveCommEthernetUdp, RoveCommEthernetTCP
 
 from QtReciever import Reciever
 from QtSender import Sender
 
 
-rovecomm = RoveCommEthernetUdp()
+rovecommUdp = RoveCommEthernetUdp()
+rovecommTCP = RoveCommEthernetTCP()
+
 
 try:
     os.mkdir('0-CSV Outputs')
@@ -44,9 +46,9 @@ if __name__ == '__main__':
 
     app = QApplication(sys.argv)
 
-    ex = Reciever(app, rovecomm)
+    ex = Reciever(app, rovecommUdp, rovecommTCP)
     ex.show()
-    ex2 = Sender(app, rovecomm)
+    ex2 = Sender(app, rovecommUdp, rovecommTCP)
     ex2.show()
 
     sys.exit(app.exec())

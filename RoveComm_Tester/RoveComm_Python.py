@@ -115,4 +115,59 @@ class RoveCommEthernetUdp:
 			returnPacket = RoveCommPacket()
 			return (returnPacket)
 
+class RoveCommEthernetTCP:
+	def __init__(self):
+		self.open_sockets = {}
+	
+	def write(self, packet):
+		try:
+			packet.print()
+			if not isinstance(packet.data, tuple):
+				raise ValueError('Must pass data as a list, Data: ' + str(data))
+
+			rovecomm_packet = struct.pack(ROVECOMM_HEADER_FORMAT, ROVECOMM_VERSION, packet.data_id, packet.data_count,
+										  types_byte_to_int[packet.data_type])
+			for i in packet.data:
+				rovecomm_packet = rovecomm_packet + struct.pack('>' + packet.data_type, i)
+			
+			#establish a new connection if the server has not yet been connected to
+			self.connect(packet.ip_address)
+
+			if (packet.ip_address != ('0.0.0.0', 0)):
+				self.open_sockets[packet.ip_address].send(rovecomm_packet)
+				return 1
+		except:
+			return 0
+
+	def connect(self, ip_address):
+		if not packet.ip_address in self.open_sockets:
+			TCPSocket = socket.socket(type=socket.SOCK_STREAM)
+			TCPSocket.connect(ip_address)
+			self.open_sockets[ip_address] = TCPSocket
+
+
+	def read(self, RoveComm_Socket):
+		try:
+			packet, remote_ip = RoveComm_Socket.recvfrom(1024)
+			header_size = struct.calcsize(ROVECOMM_HEADER_FORMAT)
+	
+			rovecomm_version, data_id, data_count, data_type = struct.unpack(ROVECOMM_HEADER_FORMAT, packet[0:header_size])
+			data = packet[header_size:]
+	
+			if(rovecomm_version != 2):
+				returnPacket = RoveCommPacket(ROVECOMM_INCOMPATIBLE_VERSION, 'b', (1,), '')
+				returnPacket.ip_address = remote_ip
+				return returnPacket
+	
+			data_type = types_int_to_byte[data_type]
+			data = struct.unpack('>' + data_type * data_count, data)
+	
+			returnPacket = RoveCommPacket(data_id, data_type, data, '')
+			returnPacket.ip_address = remote_ip
+			return returnPacket
+	
+		except:
+			returnPacket = RoveCommPacket()
+			return (returnPacket)
+
 # def readFrom ToDo: Change to getLastIp for C++ and Python

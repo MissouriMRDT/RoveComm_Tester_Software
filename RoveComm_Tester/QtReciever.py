@@ -13,11 +13,12 @@ from RoveComm_Python import RoveCommPacket, ROVECOMM_SUBSCRIBE_REQUEST
 # -Read packets that those devices send
 class Reciever(QWidget):
 
-    def __init__(self, qApp, rovecomm):
+    def __init__(self, qApp, rovecommUdp, rovecommTCP):
         super().__init__()
 
         # Instance from main that instantiated this
-        self.rovecomm = rovecomm
+        self.rovecommUdp = rovecommUdp
+        self.rovecommTCP = rovecommTCP
 
         exitAct = QAction('&Exit', self)
         exitAct.setShortcut('Ctrl+Q')
@@ -28,7 +29,7 @@ class Reciever(QWidget):
         self.do_thread = True
 
         # Subsciber gui instance
-        self.subsciber_gui = Subscriber(self.rovecomm)
+        self.subsciber_gui = Subscriber(self.rovecommUdp, self.rovecommTCP)
 
         # Packet contents filter
         self.filter_txt = QLabel('Filter:')
@@ -80,7 +81,7 @@ class Reciever(QWidget):
     def read(self):
 
         # Thread here holds until packet arrives
-        packet = self.rovecomm.read()
+        packet = self.rovecommUdp.read()
 
         if(packet.data_id != 0):
             if(self.passesFilter(packet)):
@@ -171,9 +172,10 @@ class Reciever(QWidget):
 
 # Defines subscriber control widget
 class Subscriber(QWidget):
-    def __init__(self, rovecomm):
+    def __init__(self, rovecommUdp, rovecommTCP):
         super().__init__()
-        self.rovecomm = rovecomm
+        self.rovecommUdp = rovecommUdp
+        self.rovecommTCP = rovecommTCP
 
         self.octet_input = QLineEdit()
 
@@ -190,4 +192,4 @@ class Subscriber(QWidget):
     def subscribeEvent(self):
         packet = RoveCommPacket(
             ROVECOMM_SUBSCRIBE_REQUEST, 'b', (), self.octet_input.text())
-        self.rovecomm.write(packet)
+        self.rovecommUdp.write(packet)
