@@ -118,8 +118,7 @@ class Reciever(QWidget):
         self.recieveTable.resizeColumnsToContents()
 
         if(self.autoScroll_cb.isChecked()):
-                    self.recieveTable.scrollToItem(
-                        self.recieveTable.itemAt(self.row_count, 0))
+            self.recieveTable.scrollToItem(self.recieveTable.item(self.row_count, 0))
 
         self.row_count = self.row_count+1
 
