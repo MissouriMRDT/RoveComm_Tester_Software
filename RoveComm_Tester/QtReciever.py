@@ -150,11 +150,14 @@ class Reciever(QWidget):
 
     # Test to determine if packet qualifies under the text filter
     def passesFilter(self, packet):
-        return (self.filter.text() == "" or
-                int(self.filter.text()) == packet.data_id or
-                self.filter.text() == packet.data_type or
+        try:
+            return (self.filter.text() == "" or
                 self.filter.text() in str(packet.ip_address[0]) or
-                self.filter.text() in str(packet.data))
+                self.filter.text() == packet.data_type or
+                self.filter.text() in str(packet.data) or
+                int(self.filter.text()) == packet.data_id)
+        except:
+            return False
 
 
     def keyPressEvent(self, e):
