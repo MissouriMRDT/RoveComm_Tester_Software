@@ -131,20 +131,21 @@ class Reciever(QWidget):
             self.file = open(
                 '0-CSV Outputs/'+str(self.start_time).replace(':', '_')+'.csv', 'w')
             self.file.write(
-                'Time, Delta, IP Address, Data Id, Data Type, Data Count, Data\n')
+                'Time,Delta,"IP Address",Port,"Data Id","Data Type","Data Count",Data\n')
         else:
             self.file.close()
 
 
     # Log a packet to the open file
     def logData(self, packet, retrieved_time, elapsed_time):
-        self.file.write(str(retrieved_time)+','
+        self.file.write('"' + str(retrieved_time)+'",'
                         + str(elapsed_time)+','
-                        + str(packet.ip_address)+','
+                        + str(packet.ip_address[0])+','
+                        + str(packet.ip_address[1])+','
                         + str(packet.data_id)+','
                         + str(packet.data_type)+','
-                        + str(packet.data_count)+','
-                        + str(packet.data)+'\n')
+                        + str(packet.data_count)+',"'
+                        + str(packet.data)+'"\n')
 
 
     # Test to determine if packet qualifies under the text filter
