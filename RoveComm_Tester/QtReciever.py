@@ -79,19 +79,25 @@ class Reciever(QWidget):
 
     # Loop for recieving packets
     def read(self):
+        packets = []
 
         # Thread here holds until packet arrives
-        packet = self.rovecommUdp.read()
+        packets.append(self.rovecommUdp.read())
 
-        if(packet.data_id != 0):
-            if(self.passesFilter(packet)):
-                retrieved_time = datetime.datetime.now()
-                elapsed_time = (retrieved_time-self.start_time).total_seconds()
+        #also check for any incoming packets for any of the ongoing TCP connections
+        for soc in self.rovecommTCP.open_sockets:
+            packets.append(self.rovecommTCP.read())
 
-                self.addDataRow(packet, retrieved_time, elapsed_time)
+        for packet in packets:
+            if(packet.data_id != 0):
+                if(self.passesFilter(packet)):
+                    retrieved_time = datetime.datetime.now()
+                    elapsed_time = (retrieved_time-self.start_time).total_seconds()
 
-                if(self.logData_cb.isChecked()):
-                    self.logData(packet, retrieved_time, elapsed_time)
+                    self.addDataRow(packet, retrieved_time, elapsed_time)
+
+                    if(self.logData_cb.isChecked()):
+                        self.logData(packet, retrieved_time, elapsed_time)
 
         # Call this method repeatedly
         if(self.do_thread):
@@ -180,19 +186,36 @@ class Subscriber(QWidget):
         self.rovecommUdp = rovecommUdp
         self.rovecommTCP = rovecommTCP
 
-        self.octet_input = QLineEdit()
+        self.octet_input_udp = QLineEdit()
+        self.octet_input_tcp = QLineEdit()
+        self.port_input_tcp = QLineEdit()
 
-        self.subscribe_pb = QPushButton('Subscribe', self)
-        self.subscribe_pb.clicked.connect(self.subscribeEvent)
 
-        self.main_layout = QHBoxLayout(self)
-        self.main_layout.addWidget(QLabel('Subscribe To Octet 4:'))
-        self.main_layout.addWidget(self.octet_input)
-        self.main_layout.addWidget(self.subscribe_pb)
+        self.subscribe_pb_udp = QPushButton('Subscribe (UDP)', self)
+        self.subscribe_pb_udp.clicked.connect(self.subscribeEventUdp)
+        self.subscribe_pb_tcp = QPushButton('Subscribe (TCP) ', self)
+        self.subscribe_pb_tcp.clicked.connect(self.subscribeEventTCP)
 
+        self.main_layout = QVBoxLayout()
+        self.UDP_subscribe = QHBoxLayout()
+        self.TCP_subscribe = QHBoxLayout()
+        self.UDP_subscribe.addWidget(QLabel('Subscribe to Octet 4:'))
+        self.UDP_subscribe.addWidget(self.octet_input_udp)
+        self.UDP_subscribe.addWidget(self.subscribe_pb_udp)
+        self.main_layout.addLayout(self.UDP_subscribe)
+        self.TCP_subscribe.addWidget(QLabel('Subscribe to Octet 4:'))
+        self.TCP_subscribe.addWidget(self.octet_input_tcp)
+        self.TCP_subscribe.addWidget(QLabel('Port Number:'))
+        self.TCP_subscribe.addWidget(self.port_input_tcp)
+        self.TCP_subscribe.addWidget(self.subscribe_pb_tcp)
+        self.main_layout.addLayout(self.TCP_subscribe)
+        self.setLayout(self.main_layout)
         self.show()
 
-    def subscribeEvent(self):
+    def subscribeEventUdp(self):
         packet = RoveCommPacket(
-            ROVECOMM_SUBSCRIBE_REQUEST, 'b', (), self.octet_input.text())
+            ROVECOMM_SUBSCRIBE_REQUEST, 'b', (), self.octet_input_udp.text())
         self.rovecommUdp.write(packet)
+
+    def subscribeEventTCP(self):
+        self.rovecommTCP.connect((self.octet_input_tcp.text(),int(self.port_input_tcp.text())))
