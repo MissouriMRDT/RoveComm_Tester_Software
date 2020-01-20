@@ -132,8 +132,10 @@ class Sender(QWidget):
                 # Loop through one file's send rows
                 for i in range(0, int(data["packet_count"])):
                     try:
-                        if isinstance(send_widgets[start_number + i], sendWidgetUdp):
-                            self.addEvent()
+                        if data["packet"][i]["protocol"] == "UDP":
+                            print("Is udp packet")
+                            self.addUdpEvent()
+
                             self.send_widgets[start_number + i].data_id_le.setText(
                                 data["packet"][i]["data_id"])
                             self.send_widgets[start_number + i].update_ms_le.setText(
@@ -155,10 +157,34 @@ class Sender(QWidget):
                                     data["packet"][i]["data"][j]["scalar"])
                                 self.send_widgets[start_number + i].input_cb_array[j].setCurrentText(
                                     data["packet"][i]["data"][j]["input"])
+                        else:
+                            print("Is tcp packet")
+                            self.addTCPEvent()
+                            self.send_widgets[start_number + i].data_id_le.setText(
+                                data["packet"][i]["data_id"])
+                            self.send_widgets[start_number + i].update_ms_le.setText(
+                                data["packet"][i]["update_ms"])
+                            self.send_widgets[start_number + i].ip_octet_4_le.setText(
+                                data["packet"][i]["port"])
+                            self.send_widgets[start_number + i].port_le.setText(
+                                data["packet"][i]["ip_octet_4"])
+                            self.send_widgets[start_number + i].data_type_cb.setCurrentText(
+                                data["packet"][i]["data_type"])
+
+                            data_size = int(data["packet"][i]["data_size"])
+                            self.send_widgets[start_number + i].data_length_le.setText(
+                                str(data_size))
+
+                            # Loop through data elements
+                            for j in range(0, data_size):
+                                self.send_widgets[start_number + i].data_array[j].setText(
+                                    data["packet"][i]["data"][j]["data"])
+
                     except Exception as ex:
                         template = "An exception of type {0} occurred. Arguments:\n{1!r}"
                         message = template.format(type(ex).__name__, ex.args)
                         print(message)
+
         except Exception as ex:
             template = "An exception of type {0} occurred. Arguments:\n{1!r}"
             message = template.format(type(ex).__name__, ex.args)
@@ -175,12 +201,12 @@ class Sender(QWidget):
         # Loop through each send row
         for i in range(0, len(self.send_widgets)):
             try:
-                if isinstance(send_widgets[i], sendWidgetUdp):
+                if isinstance(self.send_widgets[i], sendWidgetUdp):
                     data["packet"].append({})
                     data["packet"][i]["data_id"] = self.send_widgets[i].data_id_le.text()
                     data["packet"][i]["data_type"] = self.send_widgets[i].data_type_cb.currentText()
                     data["packet"][i]["data_size"] = self.send_widgets[i].data_length_le.text()
-                    data["packet"][i]["update_ms"] = self.send_widgets[i].update_period_ms
+                    data["packet"][i]["update_ms"] = str(self.send_widgets[i].update_period_ms)
                     data["packet"][i]["ip_octet_4"] = self.send_widgets[i].ip_octet_4_le.text()
 
                     # Data looping per element
@@ -190,6 +216,23 @@ class Sender(QWidget):
                         data["packet"][i]["data"][j]["data"] = self.send_widgets[i].data_array[j].text()
                         data["packet"][i]["data"][j]["scalar"] = self.send_widgets[i].scalar_array[j].text()
                         data["packet"][i]["data"][j]["input"] = self.send_widgets[i].input_cb_array[j].currentText()
+                    data["packet"][i]["protocol"] = "UDP"
+                else:
+                    data["packet"].append({})
+                    data["packet"][i]["data_id"] = self.send_widgets[i].data_id_le.text()
+                    data["packet"][i]["data_type"] = self.send_widgets[i].data_type_cb.currentText()
+                    data["packet"][i]["data_size"] = self.send_widgets[i].data_length_le.text()
+                    data["packet"][i]["update_ms"] = str(self.send_widgets[i].update_period_ms)
+                    data["packet"][i]["ip_octet_4"] = self.send_widgets[i].ip_octet_4_le.text()
+                    data["packet"][i]["port"] = self.send_widgets[i].port_le.text()
+
+
+                    # Data looping per element
+                    data["packet"][i]["data"] = []
+                    for j in range(0, int(self.send_widgets[i].data_length_le.text())):
+                        data["packet"][i]["data"].append({})
+                        data["packet"][i]["data"][j]["data"] = self.send_widgets[i].data_array[j].text()
+                    data["packet"][i]["protocol"] = "TCP"
 
             except:
                 print("Unknown issue(s) with creating JSON")
