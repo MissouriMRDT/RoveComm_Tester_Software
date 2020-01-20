@@ -3,6 +3,7 @@ import datetime
 import threading
 
 from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QWidget, QAction, QHBoxLayout, QVBoxLayout, QLabel, QLineEdit, QCheckBox, QTableWidget, QSplitter, QPushButton, QGridLayout, QTableWidgetItem
 
 from RoveComm_Python import RoveCommPacket, ROVECOMM_SUBSCRIBE_REQUEST
@@ -69,7 +70,7 @@ class Reciever(QWidget):
 
         self.setLayout(layout_vbox)
         self.setWindowTitle('Reciever')
-        # self.setWindowIcon(QIcon(':/Rover.png'))
+        self.setWindowIcon(QIcon('rover_swoosh.ico'))
         self.resize(900, 500)
 
         self.show()

@@ -2,6 +2,7 @@
 import json
 
 from PyQt5.QtCore import Qt, QTimer
+from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QWidget, QAction, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QComboBox, QSplitter, QPushButton, QGridLayout, QFileDialog, QCheckBox
 
 from RoveComm_Python import RoveCommPacket
@@ -69,7 +70,7 @@ class Sender(QWidget):
         self.main_layout.addWidget(self.send_widgets[0])
 
         self.setWindowTitle('Sender')
-        # self.setWindowIcon(QIcon(':/Rover.png'))
+        self.setWindowIcon(QIcon('rover_swoosh.ico'))
 
         self.resize(self.sizeHint())
 
