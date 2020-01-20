@@ -68,7 +68,7 @@ class RoveCommEthernetUdp:
 		try:
 			packet.print()
 			if not isinstance(packet.data, tuple):
-				raise ValueError('Must pass data as a list, Data: ' + str(packet.data))
+				raise ValueError('Must pass data as a tuple, Data: ' + str(packet.data))
 
 			rovecomm_packet = struct.pack(ROVECOMM_HEADER_FORMAT, ROVECOMM_VERSION, packet.data_id, packet.data_count,
 										  types_byte_to_int[packet.data_type])
@@ -124,7 +124,7 @@ class RoveCommEthernetTCP:
 		try:
 			packet.print()
 			if not isinstance(packet.data, tuple):
-				raise ValueError('Must pass data as a list, Data: ' + str(data))
+				raise ValueError('Must pass data as a tuple, Data: ' + str(data))
 
 			rovecomm_packet = struct.pack(ROVECOMM_HEADER_FORMAT, ROVECOMM_VERSION, packet.data_id, packet.data_count,
 										  types_byte_to_int[packet.data_type])
