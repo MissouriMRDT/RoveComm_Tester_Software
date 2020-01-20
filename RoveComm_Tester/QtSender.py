@@ -165,9 +165,9 @@ class Sender(QWidget):
                             self.send_widgets[start_number + i].update_ms_le.setText(
                                 data["packet"][i]["update_ms"])
                             self.send_widgets[start_number + i].ip_octet_4_le.setText(
-                                data["packet"][i]["port"])
-                            self.send_widgets[start_number + i].port_le.setText(
                                 data["packet"][i]["ip_octet_4"])
+                            self.send_widgets[start_number + i].port_le.setText(
+                                data["packet"][i]["port"])
                             self.send_widgets[start_number + i].data_type_cb.setCurrentText(
                                 data["packet"][i]["data_type"])
 
