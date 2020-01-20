@@ -621,7 +621,7 @@ class sendWidgetTCP(QWidget):
                 data = (data) + (int(self.data_array[i].text()),)
 
             packet = RoveCommPacket(int(self.data_id_le.text(
-            )), data_types[self.data_type_cb.currentText()], data, self.ip_octet_4_le.text(), self.port_le.text())
+            )), data_types[self.data_type_cb.currentText()], data, self.ip_octet_4_le.text(), int(self.port_le.text()))
             self.rovecommTCP.write(packet)
             self.update_text_color(True, self.send)
         except:

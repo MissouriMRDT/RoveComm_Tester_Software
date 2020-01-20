@@ -141,11 +141,13 @@ class RoveCommEthernetTCP:
 			return 0
 
 	def connect(self, ip_address):
-		if not packet.ip_address in self.open_sockets:
+		if not ip_address in self.open_sockets:
 			TCPSocket = socket.socket(type=socket.SOCK_STREAM)
-			TCPSocket.connect(ip_address)
+			try:
+				TCPSocket.connect(ip_address)
+			except Exception as e: 
+				print("something's wrong. Exception is %s" % (e))
 			self.open_sockets[ip_address] = TCPSocket
-
 
 	def read(self, RoveComm_Socket):
 		try:
@@ -167,7 +169,7 @@ class RoveCommEthernetTCP:
 			returnPacket.ip_address = remote_ip
 			return returnPacket
 	
-		except:
+		except Exception as e: 
 			returnPacket = RoveCommPacket()
 			return (returnPacket)
 

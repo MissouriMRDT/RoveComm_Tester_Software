@@ -86,7 +86,10 @@ class Reciever(QWidget):
 
         #also check for any incoming packets for any of the ongoing TCP connections
         for soc in self.rovecommTCP.open_sockets:
-            packets.append(self.rovecommTCP.read())
+            #packing in the ip address as a tcp socket does not provide a return for ip
+            packet = self.rovecommTCP.read(self.rovecommTCP.open_sockets[soc])
+            packet.ip_address = soc[0]
+            packets.append(packet)
 
         for packet in packets:
             if(packet.data_id != 0):
@@ -218,4 +221,4 @@ class Subscriber(QWidget):
         self.rovecommUdp.write(packet)
 
     def subscribeEventTCP(self):
-        self.rovecommTCP.connect((self.octet_input_tcp.text(),int(self.port_input_tcp.text())))
+        self.rovecommTCP.connect(('192.168.1.'+self.octet_input_tcp.text(),int(self.port_input_tcp.text())))
