@@ -18,6 +18,7 @@ types_int_to_byte = {
 	3: 'H',
 	4: 'l',
 	5: 'L',
+	6: 'f',
 }
 
 types_byte_to_int = {
@@ -27,6 +28,7 @@ types_byte_to_int = {
 	'H': 3,
 	'l': 4,
 	'L': 5,
+	'f': 6,
 }
 
 

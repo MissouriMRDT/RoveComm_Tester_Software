@@ -18,7 +18,8 @@ data_types = {
     'Int16': 'h',
     'uInt16': 'H',
     'Int32': 'l',
-    'uInt32': 'L'
+    'uInt32': 'L',
+    'Float' : 'f'
 }
 
 
@@ -357,7 +358,7 @@ class sendWidgetUdp(QWidget):
         data = ()
         try:
             for i in range(0, self.data_length):
-                data = (data) + (int(self.data_array[i].text()),)
+                data = (data) + (float(self.data_array[i].text()),)
 
             packet = RoveCommPacket(int(self.data_id_le.text(
             )), data_types[self.data_type_cb.currentText()], data, self.ip_octet_4_le.text())
@@ -662,7 +663,7 @@ class sendWidgetTCP(QWidget):
         data = ()
         try:
             for i in range(0, self.data_length):
-                data = (data) + (int(self.data_array[i].text()),)
+                data = (data) + (float(self.data_array[i].text()),)
 
             packet = RoveCommPacket(int(self.data_id_le.text(
             )), data_types[self.data_type_cb.currentText()], data, self.ip_octet_4_le.text(), int(self.port_le.text()))
