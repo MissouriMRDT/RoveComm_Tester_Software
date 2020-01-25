@@ -109,7 +109,7 @@ class RoveCommEthernetUdp:
 	
 			data_type = types_int_to_byte[data_type]
 			data = struct.unpack('>' + data_type * data_count, data)
-	
+			print(data)
 			returnPacket = RoveCommPacket(data_id, data_type, data, '')
 			returnPacket.ip_address = remote_ip
 			return returnPacket

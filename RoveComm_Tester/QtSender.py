@@ -358,7 +358,11 @@ class sendWidgetUdp(QWidget):
         data = ()
         try:
             for i in range(0, self.data_length):
-                data = (data) + (float(self.data_array[i].text()),)
+                if self.data_type_cb.currentText() == "Float":
+                    data = (data) + (float(self.data_array[i].text()),)
+                else:
+                    data = (data) + (int(self.data_array[i].text()),)
+
 
             packet = RoveCommPacket(int(self.data_id_le.text(
             )), data_types[self.data_type_cb.currentText()], data, self.ip_octet_4_le.text())
