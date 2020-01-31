@@ -1,5 +1,8 @@
 import socket
 import struct
+import threading
+
+sem = threading.Semaphore()
 
 ROVECOMM_PORT 			= 11000
 ROVECOMM_VERSION 		= 2
@@ -29,6 +32,16 @@ types_byte_to_int = {
 	'l': 4,
 	'L': 5,
 	'f': 6,
+}
+
+types_byte_to_size = {
+	'b': 1,
+	'B': 1,
+	'h': 2,
+	'H': 2,
+	'l': 4,
+	'L': 4,
+	'f': 4,
 }
 
 
@@ -143,36 +156,46 @@ class RoveCommEthernetTCP:
 			return 0
 
 	def connect(self, ip_address):
+		sem.acquire()
 		if not ip_address in self.open_sockets:
 			TCPSocket = socket.socket(type=socket.SOCK_STREAM)
+			print("Connecting to: " + ip_address[0])
 			try:
 				TCPSocket.connect(ip_address)
 			except Exception as e: 
-				print("something's wrong. Exception is %s" % (e))
+				print("Something's wrong. Exception is %s" % (e))
 			self.open_sockets[ip_address] = TCPSocket
+		sem.release()
 
-	def read(self, RoveComm_Socket):
-		try:
-			packet, remote_ip = RoveComm_Socket.recvfrom(1024)
-			header_size = struct.calcsize(ROVECOMM_HEADER_FORMAT)
-	
-			rovecomm_version, data_id, data_count, data_type = struct.unpack(ROVECOMM_HEADER_FORMAT, packet[0:header_size])
-			data = packet[header_size:]
-	
-			if(rovecomm_version != 2):
-				returnPacket = RoveCommPacket(ROVECOMM_INCOMPATIBLE_VERSION, 'b', (1,), '')
-				returnPacket.ip_address = remote_ip
-				return returnPacket
-	
-			data_type = types_int_to_byte[data_type]
-			data = struct.unpack('>' + data_type * data_count, data)
-	
-			returnPacket = RoveCommPacket(data_id, data_type, data, '')
-			returnPacket.ip_address = remote_ip
-			return returnPacket
-	
-		except Exception as e: 
-			returnPacket = RoveCommPacket()
-			return (returnPacket)
+	def read(self):
+		sem.acquire()
+		packets = []
+		for socket in self.open_sockets:
+			try:
+				header = self.open_sockets[socket].recv(5)
+				rovecomm_version, data_id, data_count, data_type = struct.unpack(ROVECOMM_HEADER_FORMAT, header)
+			
+				data_type_byte = types_int_to_byte[data_type]
+				data = self.open_sockets[socket].recv(data_count*types_byte_to_size[data_type_byte])
+			
+				if(rovecomm_version != 2):
+					returnPacket = RoveCommPacket(ROVECOMM_INCOMPATIBLE_VERSION, 'b', (1,), '')
+					returnPacket.ip_address = remote_ip
+					return returnPacket
+		
+				data_type = types_int_to_byte[data_type]
+				data = struct.unpack('>' + data_type * data_count, data)
+		
+				returnPacket = RoveCommPacket(data_id, data_type, data, '')
+				returnPacket.ip_address = socket[0]
+				packets.append(returnPacket)
+		
+			except Exception as e: 
+				print("Something's wrong. Exception is %s" % (e))
+				returnPacket = RoveCommPacket()
+				packets.append(returnPacket)
+
+		sem.release()
+		return packets
 
 # def readFrom ToDo: Change to getLastIp for C++ and Python
