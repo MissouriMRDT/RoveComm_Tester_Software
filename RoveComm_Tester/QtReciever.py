@@ -1,6 +1,7 @@
 
 import datetime
 import threading
+import time
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon
@@ -75,36 +76,35 @@ class Reciever(QWidget):
 
         self.show()
 
-        self.read()
-
+        #start a seperate thread for rovecomm reading
+        self.read_thread = threading.Thread(target=self.read)
+        #start the thread
+        self.read_thread.start()
 
     # Loop for recieving packets
     def read(self):
-        packets = []
+        while(self.do_thread):
+            packets = []
 
-        # Thread here holds until packet arrives
-        packets.append(self.rovecommUdp.read())
+            # Thread here holds until packet arrives
+            packets.append(self.rovecommUdp.read())
 
-        #also check for any incoming packets for any of the ongoing TCP connections
-        tcp_packets = self.rovecommTCP.read()
-        for packet in tcp_packets:
-            packets.append(packet)    
+            #also check for any incoming packets for any of the ongoing TCP connections
+            tcp_packets = self.rovecommTCP.read()
+            for packet in tcp_packets:
+                packets.append(packet)    
 
-        for packet in packets:
-            if(packet.data_id != 0):
-                if(self.passesFilter(packet)):
-                    retrieved_time = datetime.datetime.now()
-                    elapsed_time = (retrieved_time-self.start_time).total_seconds()
+            for packet in packets:
+                if(packet.data_id != 0):
+                    if(self.passesFilter(packet)):
+                        retrieved_time = datetime.datetime.now()
+                        elapsed_time = (retrieved_time-self.start_time).total_seconds()
 
-                    self.addDataRow(packet, retrieved_time, elapsed_time)
+                        self.addDataRow(packet, retrieved_time, elapsed_time)
 
-                    if(self.logData_cb.isChecked()):
-                        self.logData(packet, retrieved_time, elapsed_time)
-
-        # Call this method repeatedly
-        if(self.do_thread):
-            threading.Timer(.01, self.read).start()
-
+                        if(self.logData_cb.isChecked()):
+                            self.logData(packet, retrieved_time, elapsed_time)            
+            time.sleep(0.01)
 
     # Insert new data into display table
     def addDataRow(self, packet, retrieved_time, elapsed_time):
@@ -175,6 +175,7 @@ class Reciever(QWidget):
 
     def closeEvent(self, event):
         self.do_thread = False
+        self.read_thread.join()
         try:
             self.file.close()
         except:

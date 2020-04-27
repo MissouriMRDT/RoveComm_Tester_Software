@@ -1,4 +1,5 @@
 import socket
+import socketserver
 import struct
 import threading
 
@@ -132,9 +133,26 @@ class RoveCommEthernetUdp:
 			return (returnPacket)
 
 class RoveCommEthernetTCP:
-	def __init__(self):
+	def __init__(self, HOST="192.168.1.69", PORT=11111):
 		self.open_sockets = {}
-	
+		#start up the local TCP server, so we can be connected to from other TCP clients
+		self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		self.server.bind((HOST, PORT))
+		#accept up to 5 simulataneous connections, before we start discarding them
+		self.server.listen(5)
+		#start up a seperate thread to handle connections
+		server_thread = threading.Thread(target=self.handle_incoming_connection)
+		server_thread.daemon = True
+		server_thread.start()
+
+	def handle_incoming_connection(self):
+		#keep adding sockets to our dictionary as clients connect
+		while True:
+			conn, addr = self.server.accept()
+			sem.acquire()
+			self.open_sockets[addr[0]] = conn
+			sem.release()
+
 	def write(self, packet):
 		try:
 			packet.print()
@@ -146,7 +164,7 @@ class RoveCommEthernetTCP:
 			for i in packet.data:
 				rovecomm_packet = rovecomm_packet + struct.pack('>' + packet.data_type, i)
 			
-			#establish a new connection if the server has not yet been connected to
+			#establish a new connection if the destination has not yet been connected to yet
 			self.connect(packet.ip_address)
 
 			if (packet.ip_address != ('0.0.0.0', 0)):
@@ -174,7 +192,6 @@ class RoveCommEthernetTCP:
 			try:
 				header = self.open_sockets[socket].recv(5)
 				rovecomm_version, data_id, data_count, data_type = struct.unpack(ROVECOMM_HEADER_FORMAT, header)
-			
 				data_type_byte = types_int_to_byte[data_type]
 				data = self.open_sockets[socket].recv(data_count*types_byte_to_size[data_type_byte])
 			
@@ -191,11 +208,8 @@ class RoveCommEthernetTCP:
 				packets.append(returnPacket)
 		
 			except Exception as e: 
-				print("Something's wrong. Exception is %s" % (e))
 				returnPacket = RoveCommPacket()
 				packets.append(returnPacket)
 
 		sem.release()
 		return packets
-
-# def readFrom ToDo: Change to getLastIp for C++ and Python
