@@ -32,4 +32,7 @@ if __name__ == '__main__':
     ex2 = Sender(app, rovecommUdp, rovecommTCP)
     ex2.show()
 
-    sys.exit(app.exec())
+    ret = app.exec_()
+    #clean up our sockets before we terminate
+    rovecommTCP.close_sockets()
+    sys.exit(ret)
