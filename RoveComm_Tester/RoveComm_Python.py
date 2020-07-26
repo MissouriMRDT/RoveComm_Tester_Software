@@ -3,8 +3,6 @@ import socketserver
 import struct
 import threading
 
-sem = threading.Semaphore()
-
 ROVECOMM_PORT 			= 11000
 ROVECOMM_VERSION 		= 2
 ROVECOMM_HEADER_FORMAT 	= ">BHBB"
@@ -133,10 +131,13 @@ class RoveCommEthernetUdp:
 			return (returnPacket)
 
 class RoveCommEthernetTCP:
-	def __init__(self, HOST="192.168.1.69", PORT=11111):
+	def __init__(self, HOST=socket.gethostbyname(socket.gethostname()), PORT=11111):
 		self.open_sockets = {}
-		#start up the local TCP server, so we can be connected to from other TCP clients
+		#create a semaphore to ensure we don't iterate through our socket dictionary while simulatenously modifyingit
+		self.sem = threading.Semaphore()
+		#configure a TCP socket
 		self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		#bind the socket to the current machines local network IP by default (can be specified as well)
 		self.server.bind((HOST, PORT))
 		#accept up to 5 simulataneous connections, before we start discarding them
 		self.server.listen(5)
@@ -149,9 +150,9 @@ class RoveCommEthernetTCP:
 		#keep adding sockets to our dictionary as clients connect
 		while True:
 			conn, addr = self.server.accept()
-			sem.acquire()
+			self.sem.acquire()
 			self.open_sockets[addr[0]] = conn
-			sem.release()
+			self.sem.release()
 
 	def write(self, packet):
 		try:
@@ -174,7 +175,7 @@ class RoveCommEthernetTCP:
 			return 0
 
 	def connect(self, ip_address):
-		sem.acquire()
+		self.sem.acquire()
 		if not ip_address in self.open_sockets:
 			TCPSocket = socket.socket(type=socket.SOCK_STREAM)
 			print("Connecting to: " + ip_address[0])
@@ -183,10 +184,10 @@ class RoveCommEthernetTCP:
 			except Exception as e: 
 				print("Something's wrong. Exception is %s" % (e))
 			self.open_sockets[ip_address] = TCPSocket
-		sem.release()
+		self.sem.release()
 
 	def read(self):
-		sem.acquire()
+		self.sem.acquire()
 		packets = []
 		for socket in self.open_sockets:
 			try:
@@ -211,5 +212,5 @@ class RoveCommEthernetTCP:
 				returnPacket = RoveCommPacket()
 				packets.append(returnPacket)
 
-		sem.release()
+		self.sem.release()
 		return packets
