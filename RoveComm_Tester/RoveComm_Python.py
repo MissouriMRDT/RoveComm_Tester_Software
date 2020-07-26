@@ -151,7 +151,7 @@ class RoveCommEthernetTCP:
         self.sem.acquire()
         for socket in self.open_sockets:
             #notifies other end that we are terminating the connection
-            socket.close()
+            self.open_sockets[socket].close()
         self.sem.release()
 
     def handle_incoming_connection(self):
