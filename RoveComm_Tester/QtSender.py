@@ -548,13 +548,13 @@ class sendWidgetUdp(QWidget):
 
     # Thread method executed when the update period is valid
     def sendThread(self):
-        if(self.update_period_ms != 0):
+        if(self.update_period_ms != 0 and self.send_check.isChecked()):
             try:
                 self.updateXboxValues()
             except:
                 pass
 
-            self.send.animateClick()
+            self.sendEvent()
 
 
     # Handler for enable checkbox, sets state of send button
@@ -783,8 +783,8 @@ class sendWidgetTCP(QWidget):
 
     # Thread method executed when the update period is valid
     def sendThread(self):
-        if(self.update_period_ms != 0):
-            self.send.animateClick()
+        if(self.update_period_ms != 0 and self.send_check.isChecked()):
+            self.sendEvent()
 
 
     # Handler for enable checkbox, sets state of send button
