@@ -155,7 +155,6 @@ class RoveCommEthernetTCP:
             #notifies other end that we are terminating the connection
             self.open_sockets[open_socket].shutdown(1)
             self.open_sockets[open_socket].close()
-            print("Closing")
         self.sem.release()
 
     def handle_incoming_connection(self):
@@ -179,9 +178,6 @@ class RoveCommEthernetTCP:
             
             #establish a new connection if the destination has not yet been connected to yet
             self.connect(packet.address)
-
-            for i in rovecomm_packet:
-                print(i)
 
             if (packet.address != ('0.0.0.0', 0)):
                 self.open_sockets[packet.address].send(rovecomm_packet)
