@@ -33,6 +33,8 @@ if __name__ == '__main__':
     ex2.show()
 
     ret = app.exec_()
+
     #clean up our sockets before we terminate
     rovecommTCP.close_sockets()
+    
     sys.exit(ret)

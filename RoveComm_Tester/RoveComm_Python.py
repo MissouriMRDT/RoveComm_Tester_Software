@@ -2,6 +2,7 @@ import socket
 import socketserver
 import struct
 import threading
+import time
 
 ROVECOMM_PORT 			= 11000
 ROVECOMM_VERSION 		= 2
@@ -51,20 +52,21 @@ class RoveCommPacket:
         self.data_count = len(data)
         self.data = data
         if (ip_octet_4 != ''):
-            self.ip_address = ('192.168.1.' + ip_octet_4, port)
+            self.address = ('192.168.1.' + ip_octet_4, port)
         else:
-            self.ip_address = ('0.0.0.0', port)
+            self.address = ('0.0.0.0', port)
         return
     
-    def SetIp(self, address):
-        self.ip_address = (address, self.ip_address[1])
+    def SetIp(self, ip_address):
+        self.address = (ip_address, self.address[1])
     
     def print(self):
         print('----------')
         print('{0:6s} {1}'.format('ID:', self.data_id))
         print('{0:6s} {1}'.format('Type:', self.data_type))
         print('{0:6s} {1}'.format('Count:', self.data_count))
-        print('{0:6s} {1}'.format('IP:', self.ip_address))
+        print('{0:6s} {1}'.format('IP:', self.address[0]))
+        print('{0:6s} {1}'.format('Port:', self.address[1]))
         print('{0:6s} {1}'.format('Data:', self.data))
         print('----------')
     
@@ -92,8 +94,8 @@ class RoveCommEthernetUdp:
             for subscriber in self.subscribers:
                     self.RoveCommSocket.sendto(rovecomm_packet, (subscriber))
             
-            if (packet.ip_address != ('0.0.0.0', 0) and not (packet.ip_address in self.subscribers)):
-                self.RoveCommSocket.sendto(rovecomm_packet, packet.ip_address)
+            if (packet.address != ('0.0.0.0', 0) and not (packet.address in self.subscribers)):
+                self.RoveCommSocket.sendto(rovecomm_packet, packet.address)
 
             return 1
         except:
@@ -109,7 +111,7 @@ class RoveCommEthernetUdp:
 
             if(rovecomm_version != 2):
                 returnPacket = RoveCommPacket(ROVECOMM_INCOMPATIBLE_VERSION, 'b', (1,), '')
-                returnPacket.ip_address = remote_ip
+                returnPacket.SetIp(remote_ip)
                 return returnPacket
 
             if (data_id == ROVECOMM_SUBSCRIBE_REQUEST):
@@ -123,7 +125,7 @@ class RoveCommEthernetUdp:
             data = struct.unpack('>' + data_type * data_count, data)
             print(data)
             returnPacket = RoveCommPacket(data_id, data_type, data, '')
-            returnPacket.ip_address = remote_ip
+            returnPacket.SetIp(remote_ip)
             return returnPacket
 
         except:
@@ -149,9 +151,11 @@ class RoveCommEthernetTCP:
 
     def close_sockets(self):
         self.sem.acquire()
-        for socket in self.open_sockets:
+        for open_socket in self.open_sockets:
             #notifies other end that we are terminating the connection
-            self.open_sockets[socket].close()
+            self.open_sockets[open_socket].shutdown(1)
+            self.open_sockets[open_socket].close()
+            print("Closing")
         self.sem.release()
 
     def handle_incoming_connection(self):
@@ -174,24 +178,27 @@ class RoveCommEthernetTCP:
                 rovecomm_packet = rovecomm_packet + struct.pack('>' + packet.data_type, i)
             
             #establish a new connection if the destination has not yet been connected to yet
-            self.connect(packet.ip_address)
+            self.connect(packet.address)
 
-            if (packet.ip_address != ('0.0.0.0', 0)):
-                self.open_sockets[packet.ip_address].send(rovecomm_packet)
+            for i in rovecomm_packet:
+                print(i)
+
+            if (packet.address != ('0.0.0.0', 0)):
+                self.open_sockets[packet.address].send(rovecomm_packet)
                 return 1
         except:
             return 0
 
-    def connect(self, ip_address):
+    def connect(self, address):
         self.sem.acquire()
-        if not ip_address in self.open_sockets:
+        if not address in self.open_sockets:
             TCPSocket = socket.socket(type=socket.SOCK_STREAM)
-            print("Connecting to: " + ip_address[0])
+            print("Connecting to: " + address[0])
             try:
-                TCPSocket.connect(ip_address)
+                TCPSocket.connect(address)
             except Exception as e: 
                 print("Something's wrong. Exception is %s" % (e))
-            self.open_sockets[ip_address] = TCPSocket
+            self.open_sockets[address] = TCPSocket
         self.sem.release()
 
     def read(self):
@@ -206,14 +213,14 @@ class RoveCommEthernetTCP:
             
                 if(rovecomm_version != 2):
                     returnPacket = RoveCommPacket(ROVECOMM_INCOMPATIBLE_VERSION, 'b', (1,), '')
-                    returnPacket.ip_address = remote_ip
+                    returnPacket.SetIp(remote_ip)
                     return returnPacket
         
                 data_type = types_int_to_byte[data_type]
                 data = struct.unpack('>' + data_type * data_count, data)
         
                 returnPacket = RoveCommPacket(data_id, data_type, data, '')
-                returnPacket.ip_address = socket[0]
+                returnPacket.SetIp(socket[0])
                 packets.append(returnPacket)
         
             except Exception as e: 

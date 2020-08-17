@@ -115,7 +115,7 @@ class Reciever(QWidget):
         self.recieveTable.setItem(
             self.row_count, 1, QTableWidgetItem(str(elapsed_time)))
         self.recieveTable.setItem(
-            self.row_count, 2, QTableWidgetItem(str(packet.ip_address)))
+            self.row_count, 2, QTableWidgetItem(str(packet.address)))
         self.recieveTable.setItem(
             self.row_count, 3, QTableWidgetItem(str(packet.data_id)))
         self.recieveTable.setItem(
@@ -148,8 +148,8 @@ class Reciever(QWidget):
     def logData(self, packet, retrieved_time, elapsed_time):
         self.file.write('"' + str(retrieved_time)+'",'
                         + str(elapsed_time)+','
-                        + str(packet.ip_address[0])+','
-                        + str(packet.ip_address[1])+','
+                        + str(packet.address[0])+','
+                        + str(packet.address[1])+','
                         + str(packet.data_id)+','
                         + str(packet.data_type)+','
                         + str(packet.data_count)+',"'
@@ -160,7 +160,7 @@ class Reciever(QWidget):
     def passesFilter(self, packet):
         try:
             return (self.filter.text() == "" or
-                self.filter.text() in str(packet.ip_address[0]) or
+                self.filter.text() in str(packet.address[0]) or
                 self.filter.text() == packet.data_type or
                 self.filter.text() in str(packet.data) or
                 int(self.filter.text()) == packet.data_id)
