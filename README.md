@@ -66,5 +66,5 @@ If no packets are being recieved, try these measures:
 The program executables are built with pyinstaller
 
 ```
-pyinstaller -F RoveComm_Tester.py
+pyinstaller -F --icon=rover_swoosh.ico RoveComm_Tester.py
 ```
