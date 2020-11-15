@@ -556,11 +556,15 @@ class sendWidgetUdp(QWidget):
 
             self.sendEvent()
 
+            # Change the color of the send button to green to indicate ongoing transmission
+            self.send.setStyleSheet("background:green")
+
 
     # Handler for enable checkbox, sets state of send button
     def enabled(self, enabled):
         self.send.setEnabled(enabled)
-
+        # Reset color of the send button
+        self.send.setStyleSheet('')
 
     def close(self):
         try:
@@ -785,12 +789,15 @@ class sendWidgetTCP(QWidget):
     def sendThread(self):
         if(self.update_period_ms != 0 and self.send_check.isChecked()):
             self.sendEvent()
+            # Change the color of the send button to green to indicate ongoing transmission
+            self.send.setStyleSheet("background:green")
 
 
     # Handler for enable checkbox, sets state of send button
     def enabled(self, enabled):
         self.send.setEnabled(enabled)
-
+        # Reset color of the send button
+        self.send.setStyleSheet('')
 
     def close(self):
         self.updateTimer.stop()
