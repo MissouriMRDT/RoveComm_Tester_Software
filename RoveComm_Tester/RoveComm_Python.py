@@ -123,7 +123,6 @@ class RoveCommEthernetUdp:
 
             data_type = types_int_to_byte[data_type]
             data = struct.unpack('>' + data_type * data_count, data)
-            print(data)
             returnPacket = RoveCommPacket(data_id, data_type, data, '')
             returnPacket.SetIp(remote_ip)
             return returnPacket
@@ -134,9 +133,9 @@ class RoveCommEthernetUdp:
 
 class RoveCommEthernetTCP:
 
-    def __init__(self, HOST=socket.gethostbyname(socket.gethostname()), PORT=11111):
+    def __init__(self, HOST="", PORT=11111):
         self.open_sockets = {}
-        #create a semaphore to ensure we don't iterate through our socket dictionary while simulatenously modifyingit
+        #create a semaphore to ensure we don't iterate through our socket dictionary while simulatenously modifying it
         self.sem = threading.Semaphore()
         #configure a TCP socket
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -215,8 +214,7 @@ class RoveCommEthernetTCP:
                 data_type = types_int_to_byte[data_type]
                 data = struct.unpack('>' + data_type * data_count, data)
         
-                returnPacket = RoveCommPacket(data_id, data_type, data, '')
-                returnPacket.SetIp(socket[0])
+                returnPacket = RoveCommPacket(data_id, data_type, data, socket[0], socket[1])
                 packets.append(returnPacket)
         
             except Exception as e: 
