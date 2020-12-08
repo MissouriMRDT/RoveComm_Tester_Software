@@ -55,6 +55,10 @@ class Sender(QWidget):
         self.writeJson_pb = QPushButton("Write Config")
         self.writeJson_pb.clicked.connect(self.writeJSON)
 
+        # Define the Xbox controller class
+        self.xboxCont = XboxController(deadzone=20, scale=100, invertYAxis=True)
+        self.xboxCont.start()
+        
         # Button menu layout
         self.menu_layout = QHBoxLayout()
         self.menu_layout.addWidget(self.add_udp_pb)
@@ -63,7 +67,7 @@ class Sender(QWidget):
         self.menu_layout.addWidget(self.writeJson_pb)
 
         # Send widget array definition
-        self.send_widgets = [sendWidgetUdp(self.rovecommUdp, self, 0)]
+        self.send_widgets = [sendWidgetUdp(self.rovecommUdp, self.xboxCont, self, 0)]
 
         # Primary layout definition
         self.main_layout = QVBoxLayout(self)
@@ -89,7 +93,7 @@ class Sender(QWidget):
     # Handler for adding a udp send widget
     def addUdpEvent(self):
         self.send_widgets.append(sendWidgetUdp(
-            self.rovecommUdp, self, len(self.send_widgets)))
+            self.rovecommUdp,  self.xboxCont, self, len(self.send_widgets)))
         self.redrawWidgets()
 
     # Handler for adding a tcp send widget
@@ -261,18 +265,14 @@ class Sender(QWidget):
 
 # Class defines a send row for the sender widget for udp
 class sendWidgetUdp(QWidget):
-    def __init__(self, rovecommUdp, parent=None, row_index=1):
+    def __init__(self, rovecommUdp, xbox, parent=None, row_index=1):
         QWidget.__init__(self, parent=parent)
 
-        super(sendWidgetUdp, self).__init__(parent)
+        #super(sendWidgetUdp, self).__init__(parent)
         self.rovecommUdp = rovecommUdp
 
-        # Defining xbox controller
-        try:
-            self.xboxCont = XboxController(deadzone=20, scale=100, invertYAxis=True)
-            self.xboxCont.start()
-        except:
-            pass
+        # Assigning xbox controller to member variable
+        self.xboxCont = xbox
 
         self.updateTimer = QTimer()
         self.updateTimer.timeout.connect(self.sendThread)
