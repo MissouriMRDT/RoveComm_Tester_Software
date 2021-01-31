@@ -81,7 +81,8 @@ class Sender(QWidget):
         try:
             self.xboxCont = XboxController(deadzone=20, scale=100, invertYAxis=True)
             self.xboxCont.start()
-        except:
+        except Exception as e:
+            print(e)
             self.xboxCont = None
 
         # Button menu layout
@@ -532,7 +533,8 @@ class sendWidgetUdp(QWidget):
         if self.update_period_ms != 0 and self.send_check.isChecked():
             try:
                 self.updateXboxValues()
-            except:
+            except Exception as e:
+                print(e)
                 pass
 
             self.sendEvent()
