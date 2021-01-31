@@ -1,27 +1,28 @@
-
 import os
 import sys
+import json
 
 from PyQt5.QtWidgets import QApplication
-
 from RoveComm_Python import RoveCommPacket, RoveCommEthernetUdp, RoveCommEthernetTCP
-
 from QtReciever import Reciever
 from QtSender import Sender
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
-    rovecommUdp = RoveCommEthernetUdp()
-    rovecommTCP = RoveCommEthernetTCP()
+    config = open("config.json", "r").read()
+    config = json.loads(config)
+
+    rovecommUdp = RoveCommEthernetUdp(port=config["UDP_PORT"])
+    rovecommTCP = RoveCommEthernetTCP(PORT=config["TCP_PORT"])
 
     try:
-        os.mkdir('0-CSV Outputs')
+        os.mkdir("0-CSV Outputs")
     except:
         pass
 
     try:
-        os.mkdir('1-Configs')
+        os.mkdir("1-Configs")
     except:
         pass
 
@@ -34,7 +35,7 @@ if __name__ == '__main__':
 
     ret = app.exec_()
 
-    #clean up our sockets before we terminate
+    # clean up our sockets before we terminate
     rovecommTCP.close_sockets()
-    
+
     sys.exit(ret)
