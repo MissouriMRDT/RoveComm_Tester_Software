@@ -17,7 +17,7 @@ from PyQt5.QtWidgets import (
     QCheckBox,
 )
 
-from RoveComm_Python import RoveCommPacket
+from rovecomm_module.rovecomm import RoveCommPacket
 from XboxController import XboxController
 
 

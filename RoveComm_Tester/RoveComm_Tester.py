@@ -3,10 +3,9 @@ import sys
 import json
 
 from PyQt5.QtWidgets import QApplication
-from RoveComm_Python import RoveCommPacket, RoveCommEthernetUdp, RoveCommEthernetTCP
+from rovecomm_module.rovecomm import RoveCommPacket, RoveCommEthernetUdp, RoveCommEthernetTcp
 from QtReciever import Reciever
 from QtSender import Sender
-
 
 if __name__ == "__main__":
 
@@ -14,7 +13,7 @@ if __name__ == "__main__":
     config = json.loads(config)
 
     rovecommUdp = RoveCommEthernetUdp(port=config["UDP_PORT"])
-    rovecommTCP = RoveCommEthernetTCP(PORT=config["TCP_PORT"])
+    rovecommTCP = RoveCommEthernetTcp(PORT=config["TCP_PORT"])
 
     try:
         os.mkdir("0-CSV Outputs")
