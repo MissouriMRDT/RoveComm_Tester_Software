@@ -106,7 +106,7 @@ class Reciever(QWidget):
                 packets.append(packet)
 
             for packet in packets:
-                if packet.data_id != 0:
+                if packet != None and packet.data_id != 0:
                     if self.passesFilter(packet):
                         retrieved_time = datetime.datetime.now()
                         elapsed_time = (retrieved_time - self.start_time).total_seconds()
@@ -123,7 +123,7 @@ class Reciever(QWidget):
 
         self.recieveTable.setItem(self.row_count, 0, QTableWidgetItem(str(retrieved_time)))
         self.recieveTable.setItem(self.row_count, 1, QTableWidgetItem(str(elapsed_time)))
-        self.recieveTable.setItem(self.row_count, 2, QTableWidgetItem(str(packet.address)))
+        self.recieveTable.setItem(self.row_count, 2, QTableWidgetItem(str(packet.ip_address)))
         self.recieveTable.setItem(self.row_count, 3, QTableWidgetItem(str(packet.data_id)))
         self.recieveTable.setItem(self.row_count, 4, QTableWidgetItem(str(packet.data_type)))
         self.recieveTable.setItem(self.row_count, 5, QTableWidgetItem(str(packet.data_count)))
@@ -171,7 +171,7 @@ class Reciever(QWidget):
         try:
             return (
                 self.filter.text() == ""
-                or self.filter.text() in str(packet.address[0])
+                or self.filter.text() in str(packet.ip_address[0])
                 or self.filter.text() == packet.data_type
                 or self.filter.text() in str(packet.data)
                 or int(self.filter.text()) == packet.data_id
@@ -226,6 +226,7 @@ class Subscriber(QWidget):
 
     def subscribeEventUdp(self):
         packet = RoveCommPacket(ROVECOMM_SUBSCRIBE_REQUEST, "b", (), self.octet_input_udp.text())
+        print(self.octet_input_udp.text())
         self.rovecommUdp.write(packet)
 
     def subscribeEventTCP(self):
