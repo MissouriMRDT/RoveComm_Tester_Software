@@ -35,6 +35,7 @@ jobs:
     - name: Release Apps
       uses: ncipollo/release-action@v1
       with:
+        tag: ${{ env.RELEASE_NAME }}
         name: ${{ env.RELEASE_NAME }}
         token: ${{ secrets.GITHUB_TOKEN }}
         artifacts: "/dist/RoveComm_Tester.exe"
