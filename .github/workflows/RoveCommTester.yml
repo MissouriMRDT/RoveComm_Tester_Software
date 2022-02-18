@@ -29,7 +29,7 @@ jobs:
         cd RoveComm_Tester
         pyinstaller -F --icon=rover_swoosh.ico RoveComm_Tester.py
     - name: Export Release Timestamp
-        run: |
+      run: |
          cd ..
          echo "APP_VERSION=release_$(date +'%Y-%m-%d')" >> $GITHUB_ENV
     - name: set env
