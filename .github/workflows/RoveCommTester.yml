@@ -16,7 +16,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
       with:
-        fetch-depth: 0
+        submodules: "true"
     - name: Set up Python 3.8
       uses: actions/setup-python@v2
       with:
@@ -30,18 +30,15 @@ jobs:
       run: |
         cd RoveComm_Tester
         pyinstaller -F --icon=rover_swoosh.ico RoveComm_Tester.py
-    - name: Export Release Timestamp
-      run: |
-         cd ..
-         echo "APP_VERSION=release_$(date +'%Y-%m-%d')" >> $GITHUB_ENV
-    - name: set env
-      run: |
-         cd ..
-         echo "RELEASE_NAME=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
-    - name: Release Apps
-      uses: ncipollo/release-action@v1
-      with:
-        tag: ${{ env.APP_VERSION }}
-        name: ${{ env.RELEASE_NAME }}
-        token: ${{ secrets.GITHUB_TOKEN }}
-        artifacts: "./RoveComm_Tester/dist/RoveComm_Tester.exe"
+    - name: Zip dist
+        run: |
+          cd RoveComm_Tester
+          Compress-Archive dist\* RoveComm_Tester.zip -Force
+      - uses: "marvinpinto/action-automatic-releases@latest"
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          automatic_release_tag: "latest"
+          prerelease: true
+          title: "Development Build"
+          files: |
+            RoveComm_Tester/RoveComm_Tester.zip
