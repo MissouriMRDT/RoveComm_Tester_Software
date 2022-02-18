@@ -28,6 +28,10 @@ jobs:
       run: |
         cd RoveComm_Tester
         pyinstaller -F --icon=rover_swoosh.ico RoveComm_Tester.py
+    - name: Export Release Timestamp
+        run: |
+         cd ..
+         echo "APP_VERSION=release_$(date +'%Y-%m-%d')" >> $GITHUB_ENV
     - name: set env
       run: |
          cd ..
@@ -35,7 +39,7 @@ jobs:
     - name: Release Apps
       uses: ncipollo/release-action@v1
       with:
-        tag: ${{ env.RELEASE_NAME }}
+        tag: ${{ env.APP_VERSION }}
         name: ${{ env.RELEASE_NAME }}
         token: ${{ secrets.GITHUB_TOKEN }}
-        artifacts: "/dist/RoveComm_Tester.exe"
+        artifacts: "./RoveComm_Tester/dist/RoveComm_Tester.exe"
