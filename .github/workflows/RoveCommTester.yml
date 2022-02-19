@@ -31,9 +31,9 @@ jobs:
         cd RoveComm_Tester
         pyinstaller -F --icon=rover_swoosh.ico RoveComm_Tester.py
     - name: Zip dist
-        run: |
-          cd RoveComm_Tester
-          Compress-Archive dist\* RoveComm_Tester.zip -Force
+      run: |
+        cd RoveComm_Tester
+        Compress-Archive dist\* RoveComm_Tester.zip -Force
       - uses: "marvinpinto/action-automatic-releases@latest"
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
