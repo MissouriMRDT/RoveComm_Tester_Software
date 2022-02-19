@@ -14,31 +14,36 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v2
-      with:
-        submodules: "true"
-    - name: Set up Python 3.8
-      uses: actions/setup-python@v2
-      with:
-        python-version: "3.8"
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install pyinstaller
-        pip install -r requirements.txt
-    - name: Build with pyinstaller 
-      run: |
-        cd RoveComm_Tester
-        pyinstaller -F --icon=rover_swoosh.ico RoveComm_Tester.py
-    - name: Zip dist
-      run: |
-        cd RoveComm_Tester
-        Compress-Archive dist\* RoveComm_Tester.zip -Force
+      - uses: actions/checkout@v2
+        with:
+          submodules: "true"
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.8"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyinstaller
+          pip install -r requirements.txt
+      - name: Checkout submodules
+        run: git submodule update --init --recursive
+      - name: Build with pyinstaller
+        run: |
+          cd RoveComm_Tester
+          pyinstaller -F --icon=rover_swoosh.ico RoveComm_Tester.py
+      - name: Zip dist
+        run: |
+          cd RoveComm_Tester
+          Copy-Item "config.json" -Destination "dist\"
+          Compress-Archive dist\* RoveComm_Tester.zip -Force
+      - name: Created release name
+        run: |
+          $env:name = (Get-Date).ToString("yyyy-MM-dd") + " Release"
       - uses: "marvinpinto/action-automatic-releases@latest"
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          automatic_release_tag: "latest"
           prerelease: true
-          title: "Development Build"
+          title: ${{ env.name }}
           files: |
             RoveComm_Tester/RoveComm_Tester.zip
