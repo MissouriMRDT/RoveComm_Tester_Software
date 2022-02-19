@@ -39,11 +39,12 @@ jobs:
           Compress-Archive dist\* RoveComm_Tester.zip -Force
       - name: Created release name
         run: |
-          $env:name = (Get-Date).ToString("yyyy-MM-dd")
+          $env:name = (Get-Date).ToString("yyyy-MM-dd") + " Release"
       - uses: "marvinpinto/action-automatic-releases@latest"
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           prerelease: true
           title: ${{ env.name }}
+          automatic_release_tag: ${{ env.name }}
           files: |
             RoveComm_Tester/RoveComm_Tester.zip
