@@ -1,0 +1,50 @@
+# This workflow will install Python dependencies, run tests and lint with a single version of Python
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
+
+name: RoveCommTester
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: "true"
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.8"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyinstaller
+          pip install -r requirements.txt
+      - name: Checkout submodules
+        run: git submodule update --init --recursive
+      - name: Build with pyinstaller
+        run: |
+          cd RoveComm_Tester
+          pyinstaller -F --icon=rover_swoosh.ico RoveComm_Tester.py
+      - name: Zip dist
+        run: |
+          cd RoveComm_Tester
+          Copy-Item "config.json" -Destination "dist\"
+          Compress-Archive dist\* RoveComm_Tester.zip -Force
+      - name: Created release name
+        run: |
+          $env:name = (Get-Date).ToString("yyyy-MM-dd") + " Release"
+      - uses: "marvinpinto/action-automatic-releases@latest"
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          automatic_release_tag: "latest"
+          prerelease: true
+          title: ${{ env.name }}
+          files: |
+            RoveComm_Tester/RoveComm_Tester.zip
