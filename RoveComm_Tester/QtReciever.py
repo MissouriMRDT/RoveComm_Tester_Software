@@ -211,11 +211,11 @@ class Subscriber(QWidget):
         self.main_layout = QVBoxLayout()
         self.UDP_subscribe = QHBoxLayout()
         self.TCP_subscribe = QHBoxLayout()
-        self.UDP_subscribe.addWidget(QLabel("Subscribe to Octet 4:"))
+        self.UDP_subscribe.addWidget(QLabel("Subscribe to IP:"))
         self.UDP_subscribe.addWidget(self.octet_input_udp)
         self.UDP_subscribe.addWidget(self.subscribe_pb_udp)
         self.main_layout.addLayout(self.UDP_subscribe)
-        self.TCP_subscribe.addWidget(QLabel("Subscribe to Octet 4:"))
+        self.TCP_subscribe.addWidget(QLabel("Subscribe to IP:"))
         self.TCP_subscribe.addWidget(self.octet_input_tcp)
         self.TCP_subscribe.addWidget(QLabel("Port Number:"))
         self.TCP_subscribe.addWidget(self.port_input_tcp)
@@ -230,4 +230,4 @@ class Subscriber(QWidget):
         self.rovecommUdp.write(packet)
 
     def subscribeEventTCP(self):
-        self.rovecommTCP.connect(("192.168.1." + self.octet_input_tcp.text(), int(self.port_input_tcp.text())))
+        self.rovecommTCP.connect((self.octet_input_tcp.text(), int(self.port_input_tcp.text())))

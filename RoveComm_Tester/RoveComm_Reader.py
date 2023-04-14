@@ -18,7 +18,7 @@ RoveComm = RoveCommEthernetUdp()
 file = open("0-Data Outputs/" + str(start_time).replace(":", "_") + ".csv", "w")
 file.write("Time,Delta,Dela Prev,Data Id,Data Type,Data Count,Ip Address,Data\n")
 
-ip_fourth_octet = input("IP Fourth Octet:")
+ip_fourth_octet = input("IP:")
 data_id = input("Data ID:")
 
 # Subscribe

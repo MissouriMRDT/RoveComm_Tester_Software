@@ -1,4 +1,5 @@
 import json
+from threading import currentThread
 
 from PyQt5.QtCore import Qt, QTimer
 from PyQt5.QtGui import QIcon
@@ -43,7 +44,7 @@ controls = (
     "R Thumb",
 )
 
-data_types = {"Int8": "b", "uInt8": "B", "Int16": "h", "uInt16": "H", "Int32": "l", "uInt32": "L", "Float": "f"}
+data_types = {"Int8": "b", "uInt8": "B", "Int16": "h", "uInt16": "H", "Int32": "l", "uInt32": "L", "Float": "f", "Double": "d", "Char": "c"}
 
 
 # Class for window that allows a user to:
@@ -333,7 +334,7 @@ class sendWidgetUdp(QWidget):
         self.main_layout = QGridLayout(self)
 
         # Row for name headers
-        self.main_layout.addWidget(QLabel("IP Octet 4", self), 0, 1)
+        self.main_layout.addWidget(QLabel("IP", self), 0, 1)
         self.main_layout.addWidget(QLabel("Data ID", self), 0, 2)
         self.main_layout.addWidget(QLabel("Data Size", self), 0, 4)
         self.main_layout.addWidget(QLabel("Data", self), 0, 5)
@@ -365,7 +366,7 @@ class sendWidgetUdp(QWidget):
         data = ()
         try:
             for i in range(0, self.data_length):
-                if self.data_type_cb.currentText() == "Float":
+                if self.data_type_cb.currentText() == "Float" or self.data_type_cb.currentText() == "Double":
                     data = (data) + (float(self.data_array[i].text()),)
                 else:
                     data = (data) + (int(self.data_array[i].text()),)
