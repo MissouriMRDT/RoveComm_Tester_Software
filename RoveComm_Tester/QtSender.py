@@ -514,13 +514,14 @@ class sendWidgetUdp(QWidget):
 
     # Handler for octet, filter for valid input
     def update_octet_le(self):
-        try:
-            if int(self.sender().text()) < 256:
-                self.update_text_color(True, self.sender())
-            else:
-                self.update_text_color(False, self.sender())
-        except:
-            self.update_text_color(False, self.sender())
+        # try:
+        #     if int(self.sender().text()) < 256:
+        #         self.update_text_color(True, self.sender())
+        #     else:
+        #         self.update_text_color(False, self.sender())
+        # except:
+        #     self.update_text_color(False, self.sender())
+        self.update_text_color(True, self.sender())
 
     # Updates text color on line edits to notify of bad input
     def update_text_color(self, status, element):
