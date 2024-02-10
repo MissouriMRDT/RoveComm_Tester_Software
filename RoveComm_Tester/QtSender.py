@@ -368,6 +368,8 @@ class sendWidgetUdp(QWidget):
             for i in range(0, self.data_length):
                 if self.data_type_cb.currentText() == "Float" or self.data_type_cb.currentText() == "Double":
                     data = (data) + (float(self.data_array[i].text()),)
+                elif self.data_type_cb.currentText() == "Char":
+                    data = (data) + (bytes(self.data_array[i].text(), "ascii"),)
                 else:
                     data = (data) + (int(self.data_array[i].text()),)
 
