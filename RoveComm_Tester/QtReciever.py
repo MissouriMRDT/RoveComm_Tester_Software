@@ -226,7 +226,6 @@ class Subscriber(QWidget):
 
     def subscribeEventUdp(self):
         packet = RoveCommPacket(ROVECOMM_SUBSCRIBE_REQUEST, "b", (), self.octet_input_udp.text())
-        print(self.octet_input_udp.text())
         self.rovecommUdp.write(packet)
 
     def subscribeEventTCP(self):
